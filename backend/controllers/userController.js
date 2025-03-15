@@ -116,3 +116,96 @@ exports.getUserCourses = async (req, res) => {
     res.status(500).json({ message: "Error fetching enrollments or courses." });
   }
 };
+
+exports.enroll = async (req, res) => {
+  try {
+    const user_id = getIdFromCookie(req);
+    const { course_id } = req.body.course_id;
+
+    // Check if the course exists
+    const course = await Course.findById(course_id);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    // Check if the user exists
+    const user = await User.findById(user_id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if user is already enrolled in the course
+    const existingEnrollment = await Enrollment.findOne({
+      user: user_id,
+      course: course_id,
+    });
+
+    if (existingEnrollment) {
+      return res
+        .status(400)
+        .json({ message: "User is already enrolled in this course" });
+    }
+
+    // Create a new enrollment
+    const newEnrollment = new Enrollment({
+      user: user_id,
+      course: course_id,
+      enrolledAt: new Date(),
+    });
+
+    await newEnrollment.save();
+
+    res
+      .status(201)
+      .json({ message: "Enrollment successful", enrollment: newEnrollment });
+  } catch (error) {
+    console.error("Enrollment Error:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+exports.updateUserData = async (req, res) => {
+  try {
+    const user_id = getIdFromCookie(req);
+    const name = req.body.name;
+    const password = req.body.password;
+
+    // Fetch the user from the database
+    const user = await User.findById(user_id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if there is something to update
+    if (!name && !password) {
+      return res
+        .status(400)
+        .json({ message: "Provide at least one field to update" });
+    }
+
+    // Update fields if provided
+    if (name) {
+      user.name = name;
+    }
+
+    if (password) {
+      // Ensure the new password is different from the current hashed password
+      const isSamePassword = await bcrypt.compare(password, user.password);
+      if (isSamePassword) {
+        return res
+          .status(400)
+          .json({
+            message: "New password cannot be the same as the old password",
+          });
+      }
+
+      user.password = await bcrypt.hash(password, 10);
+    }
+    await user.save();
+
+    res.status(200).json({ message: "User data updated successfully", user });
+  } catch (error) {
+    console.error("Update User Error:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
