@@ -31,8 +31,8 @@ router.post("/api/login", userLogin);
 router.post("/api/register", userRegister);
 
 // User Routes
-router.post("/api/enroll", checkLogin, enroll);
-router.put("/api/updateUserData", updateUserData);
+router.post("/api/user/enroll", checkLogin, enroll);
+router.put("/api/user/updateData", updateUserData);
 
 // Course routes
 router.get("/api/courses", checkLogin, getCourses);
@@ -46,7 +46,7 @@ router.get("/api/lessons/:id/questions", checkLogin, getLessonQuestions);
 // Test routes
 router.get("/api/tests", checkLogin, getTests);
 router.get("/api/tests/:id", checkLogin, getTestById);
-router.post("/api/createTestScores", checkLogin, createTestScore);
+router.post("/api/testScores/create", checkLogin, createTestScore);
 router.get("/api/testScores", checkLogin, getTestScores);
 
 // Hugging Face prediction route
