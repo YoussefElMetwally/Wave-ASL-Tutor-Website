@@ -11,7 +11,7 @@
    [x] Session management.
 
 3. User Profiles:
-   [_] Retrieve and update user data.
+   [x] Retrieve and update user data.
    [_] Track user progress (enrolled courses, completed lessons)
 
 ## Course Management Functions
@@ -21,9 +21,9 @@
    [_] Provide previews of course content.
 
 2. Course Enrollment:
-   [_] Allow users to enroll in specific courses.
+   [x] Allow users to enroll in specific courses.
    [_] Maintain enrollment records in the database.
-   [_] Check course Enrollment
+   [x] Check course Enrollment
 
 3. Progress Tracking:
    [_] Mark lessons as complete.
@@ -38,7 +38,7 @@
 
 2. Tests & Quizzes:
    [_] Deliver interactive tests after lessons.
-   [_] Evaluate test responses and store results.
+   [x] Evaluate test responses and store results.
 
 ## Gesture Recognition Functions
 
