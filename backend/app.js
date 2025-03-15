@@ -19,11 +19,13 @@ db();
 // Using middleware
 app.use(
   cors({
-    origin: "http://localhost:5173", // Replace with your frontend URL
+    origin:
+      "http://localhost:" + process.env.FRONTEND_PORT ||
+      "http://localhost:" + process.env.BACKEND_PORT,
     credentials: true, // Allows cookies to be sent
   })
 );
-app.use(cookieParser()); // Make sure cookie-parser is used before routes
+app.use(cookieParser());
 app.use(express.json());
 app.use(logger);
 
