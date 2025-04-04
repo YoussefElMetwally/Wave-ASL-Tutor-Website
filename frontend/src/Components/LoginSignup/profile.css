@@ -1,0 +1,155 @@
+/* Profile Page Styles */
+.profile-container {
+    min-height: 100vh;
+    background: var(--background-color);
+    color: var(--text-color);
+  }
+  
+  .profile-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .profile-header {
+    display: grid;
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+  
+  .avatar-container {
+    text-align: center;
+  }
+  
+  .avatar {
+    width: 120px;
+    height: 120px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 3rem;
+    margin: 0 auto 1rem;
+  }
+  
+  .level {
+    color: var(--primary-color);
+    font-weight: 600;
+  }
+  
+  .stats-container {
+    display: grid;
+    gap: 2rem;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  
+  .stat-item {
+    background: var(--container-bg);
+    padding: 1.5rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+  
+  .stat-label {
+    display: block;
+    color: var(--text-color);
+    opacity: 0.8;
+  }
+  
+  .achievements-section {
+    margin: 3rem 0;
+  }
+  
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .achievement-card {
+    background: var(--container-bg);
+    padding: 1.5rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .achievement-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .settings-section {
+    margin-top: 3rem;
+  }
+  
+  .settings-card {
+    background: var(--container-bg);
+    padding: 2rem;
+    border-radius: 15px;
+    margin-top: 1.5rem;
+  }
+  
+  .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .toggle-switch {
+    width: 50px;
+    height: 25px;
+    background: var(--progress-bg);
+    border-radius: 15px;
+    position: relative;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .toggle-switch.active {
+    background: var(--primary-color);
+  }
+  
+  .toggle-knob {
+    position: absolute;
+    width: 21px;
+    height: 21px;
+    background: var(--button-text);
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s ease;
+  }
+  
+  .toggle-switch.active .toggle-knob {
+    transform: translateX(25px);
+  }
+  
+  @media (max-width: 768px) {
+    .profile-header {
+      grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .achievements-grid {
+      grid-template-columns: 1fr;
+    }
+  }

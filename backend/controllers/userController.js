@@ -21,7 +21,7 @@ exports.userLogin = (req, res) => {
           });
           res.cookie("User", token);
           console.log("User cookie: ", req.cookies);
-          res.json({ status: 200, message: "Access Granted" });
+          res.json({ status: 200, message: "Access Granted", token: token });
         } else {
           console.log("Incorrect Password");
           res.json({ status: 400, message: "Incorrect Password" });
@@ -192,11 +192,9 @@ exports.updateUserData = async (req, res) => {
       // Ensure the new password is different from the current hashed password
       const isSamePassword = await bcrypt.compare(password, user.password);
       if (isSamePassword) {
-        return res
-          .status(400)
-          .json({
-            message: "New password cannot be the same as the old password",
-          });
+        return res.status(400).json({
+          message: "New password cannot be the same as the old password",
+        });
       }
 
       user.password = await bcrypt.hash(password, 10);

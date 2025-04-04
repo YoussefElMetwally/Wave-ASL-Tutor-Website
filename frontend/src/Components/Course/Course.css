@@ -1,0 +1,478 @@
+/* Modern Course Styles */
+.course-details-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.course-title-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.course-title-section h1 {
+  font-size: 2.5rem;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+.course-progress {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.progress-bar {
+  height: 12px;
+  background-color: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress {
+  height: 100%;
+  background-color: var(--accent-color);
+  transition: width 0.3s ease;
+}
+
+/* Unit and Lesson Grid */
+.unit {
+  background-color: var(--background-secondary);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-color);
+}
+
+.unit h2 {
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.lesson-card {
+  background-color: var(--background-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid var(--border-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.lesson-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(28, 176, 246, 0.1);
+  border-color: var(--accent-color);
+}
+
+.lesson-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+  background-color: var(--background-tertiary);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lesson-info {
+  flex: 1;
+}
+
+.lesson-info h3 {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 1.1rem;
+}
+
+.lesson-info p {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.lesson-status {
+  font-size: 1.5rem;
+}
+
+.status-complete {
+  color: var(--accent-color);
+}
+
+.status-current {
+  color: #1cb0f6;
+}
+
+.status-locked {
+  color: #e9ecef;
+}
+
+/* Lesson Video Page */
+.lesson-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.lesson-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.lesson-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+}
+
+.dot.active {
+  background-color: var(--accent-color);
+}
+
+.content-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+.video-section {
+  background-color: var(--background-secondary);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+}
+
+.lesson-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.practice-button, .continue-button {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.practice-button {
+  background-color: var(--accent-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.continue-button {
+  background-color: #1cb0f6;
+  color: white;
+}
+
+.practice-button:hover, .continue-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.lesson-sidebar {
+  background-color: var(--background-secondary);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+}
+
+.lesson-tips h3 {
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+.lesson-tips ul {
+  list-style: none;
+  padding: 0;
+}
+
+.lesson-tips li {
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  position: relative;
+  color: var(--text-secondary);
+}
+
+.lesson-tips li:before {
+  content: "💡";
+  position: absolute;
+  left: 0;
+}
+
+/* Course Details Styles */
+.course-header {
+  margin-bottom: 2rem;
+}
+
+.course-info {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.lesson-list {
+  margin-top: 2rem;
+}
+
+.lesson-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Video Lesson Styles */
+.lesson-video-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.video-player {
+  margin: 2rem 0;
+}
+
+.main-video {
+  width: 100%;
+  border-radius: 8px;
+}
+
+/* Practice Styles */
+.practice-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.webcam-container {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 2rem auto;
+  min-height: 480px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.webcam-video {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.countdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.countdown-number {
+  font-size: 6rem;
+  color: white;
+  font-weight: bold;
+}
+
+/* Button Styles */
+.start-lesson-btn,
+.practice-btn,
+.capture-btn {
+  padding: 0.8rem 1.5rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.start-lesson-btn:hover,
+.practice-btn:hover,
+.capture-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Add these new styles */
+.lesson-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.skip-practice-btn {
+  padding: 0.8rem 1.5rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.skip-practice-btn:hover {
+  background-color: #5a6268;
+}
+
+/* Update existing styles */
+.practice-btn {
+  padding: 0.8rem 1.5rem;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.practice-btn:hover {
+  background-color: #0056b3;
+}
+
+.camera-btn {
+  padding: 0.8rem 1.5rem;
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.camera-btn:hover {
+  background-color: #138496;
+}
+
+.practice-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.recording-overlay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px 20px;
+  border-radius: 20px;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.recording-dot {
+  width: 12px;
+  height: 12px;
+  background-color: #ff0000;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+
+.record-btn {
+  padding: 0.8rem 1.5rem;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.record-btn:hover {
+  background-color: #c82333;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Add these new styles for dark mode support */
+.theme-toggle-wrapper {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+/* Add CSS variables for dark mode */
+:root {
+  --background-color: #e0f4ff;
+  --background-secondary: #ffffff; /* Container color for light mode */
+  --background-tertiary: #f5faff; /* Slightly blue-tinted white for icons */
+  --text-color: #1a1a1a;
+  --text-secondary: #6c757d;
+  --border-color: #cce4ff; /* Lighter blue border */
+  --accent-color: #1cb0f6;
+}
+
+[data-theme='dark'] {
+  --background-color: #2a3a4d;
+  --background-secondary: #1f2937; /* Darker blue-grey for containers in dark mode */
+  --background-tertiary: #374151; /* Slightly lighter for icons */
+  --text-color: #ffffff;
+  --text-secondary: #b0b0b0;
+  --border-color: #374151;
+  --accent-color: #1cb0f6;
+} 

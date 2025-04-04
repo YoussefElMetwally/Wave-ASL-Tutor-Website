@@ -25,7 +25,7 @@ exports.getLessonById = async (req, res) => {
 exports.getLessonQuestions = async (req, res) => {
   try {
     const lessonID = req.body;
-    const lesson = await Lesson.findOne({ lesson_id: LessonID });
+    const lesson = await Lesson.findOne({ lesson_id: lessonID });
 
     if (!lesson) {
       return res.status(400).json({ message: "Lesson not found" });
