@@ -1,0 +1,327 @@
+/* Global Styles */
+:root {
+  /* Light Theme Variables */
+  --primary-color: #00aaff;
+  --primary-hover: #0088cc;
+  --background-color: #f8f9fa; /* Main page background */
+  --container-bg: #ffffff;     /* Container backgrounds */
+  --text-color: #333333;
+  --border-color: #e0e0e0;
+  --progress-bg: #e0e0e0;
+  --button-text: #ffffff;
+  --course-image-bg: #e0f4ff;
+  --nav-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+  /* Dark Theme Variables */
+  --background-color: #1e1e2f; /* Dark main background */
+  --container-bg: #2a2a3d;     /* Dark container backgrounds */
+  --text-color: #ffffff;
+  --border-color: #4a4a5d;
+  --progress-bg: #3a3a4d;
+  --course-image-bg: #2a3a4d;
+  --nav-bg: #2a2a3d;
+}
+
+
+* {
+  transition: background-color 0.15s ease,
+              border-color 0.15s ease,
+              box-shadow 0.15s ease;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+/* Home Container */
+.home-container {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 250px;
+}
+
+/* Navigation Bar */
+.nav-bar {
+  grid-column: 1 / -1;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--background-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* User Profile Section */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background-color: var(--container-bg);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.xp, .streak {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  background-color: var(--container-bg);
+  border: 1px solid var(--border-color);
+  color: var(--primary-color);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Main Content */
+.main-content {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Course Grid */
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.course-card {
+  background-color: var(--container-bg);
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Course Image */
+.course-image {
+  height: 150px;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  background-color: var(--course-image-bg);
+  display: grid;
+  place-items: center;
+}
+
+.hand-emoji {
+  font-size: 3rem;
+}
+
+/* Progress Bars */
+.progress-container {
+  height: 8px;
+  background-color: var(--progress-bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+/* Buttons */
+.start-button,
+.continue-button {
+  background-color: var(--primary-color);
+  color: var(--button-text);
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: var(--container-bg);
+  padding: 2rem;
+  border-left: 1px solid var(--border-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .home-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .sidebar {
+    display: none;
+  }
+  
+  .course-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-bar {
+    padding: 1rem;
+  }
+  
+  .user-profile {
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+}
+
+.switch{
+  position: -webkit-sticky;
+  position: sticky;
+  top: 100px;
+  z-index: 9999;
+}
+/* Add this to ensure full background coverage */
+body, .home-container {
+  background-color: var(--background-color);
+}
+
+/* Remove inline course-image styles from JSX */
+.course-image {
+  background-color: var(--course-image-bg) !important;
+}
+.course-footer {
+  display: flex;
+  justify-content: space-between; /* Pushes items to the edges */
+  align-items: center; /* Aligns them properly */
+  padding: 1rem 0; /* Adds some vertical spacing */
+}
+.theme-toggle {
+  position: fixed;
+  top: 92%;
+  right: 1.5%;
+  background: var(--container-bg);
+  border: none;
+  padding: 10px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+/* Nav Bar Updates */
+.nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.profile-link {
+  text-decoration: none;
+}
+
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--background-tertiary);
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease,
+              background-color 0.15s ease,
+              border-color 0.15s ease;
+}
+
+.profile-icon:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+}
+
+/* Add this if you want to use an SVG icon instead of emoji */
+.profile-icon svg {
+  width: 20px;
+  height: 20px;
+  color: var(--text-color);
+}
+
+.profile-icon:hover svg {
+  color: white;
+}
+
+/* Remove the .switch class if no longer needed */
+.loading, .error {
+  padding: 2rem;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+
+.progress-circle span {
+  background: var(--container-bg);
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sign-out-button {
+  padding: 0.6rem 1.2rem;
+  background-color: transparent;
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease,
+              border-color 0.15s ease,
+              transform 0.15s ease,
+              box-shadow 0.15s ease;
+}
+
+.sign-out-button:hover {
+  background-color: #ff3b30;
+  color: white;
+  border-color: #ff3b30;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.2);
+}
+
+/* Update container transitions */
+.home-container,
+.course-details-container,
+.lesson-container {
+}

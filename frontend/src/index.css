@@ -13,3 +13,40 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Add to your global CSS (index.css) */
+/* In your global CSS */
+:root {
+  --bg-color: #f8f9fa;
+  --container-bg: #ffffff;
+  --text-color: #333333;
+  --primary-color: #00aaff;
+  --nav-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+  --bg-color: #1e1e2f;
+  --container-bg: #2a2a3d;
+  --text-color: #ffffff;
+  --primary-color: #0088cc;
+  --nav-bg: #2a2a3d;
+}
+
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+.home-container {
+  background: var(--bg-color);
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}

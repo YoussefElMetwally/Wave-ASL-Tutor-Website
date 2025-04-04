@@ -5,6 +5,7 @@ const courseSchema = new mongoose.Schema({
   course_id: { type: String, unique: true },
   title: { type: String, required: true },
   description: { type: String },
+  level: { type: String, default: "A1" },
   lessons: [{ type: mongoose.Schema.Types.String, ref: "lesson" }],
   tests: [{ type: mongoose.Schema.Types.String, ref: "test" }],
 });
