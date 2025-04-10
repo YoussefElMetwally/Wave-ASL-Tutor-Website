@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "./ThemeContext";
-import ThemeToggle from "./ThemeToggle";
 import "./home.css";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -174,9 +173,6 @@ export const Home = () => {
           </div>
         </section>
       </main>
-      <div className="switch">
-        <ThemeToggle />
-      </div>
     </div>
   );
 };
