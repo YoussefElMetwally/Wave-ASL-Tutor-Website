@@ -207,3 +207,30 @@ exports.updateUserData = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
+
+exports.getUserData = async (req, res) => {
+  try {
+    // Get user ID from the decoded token in the middleware
+    const userId = req.user.id;
+    
+    // Find the user by ID
+    const user = await User.findOne({ user_id: userId });
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Return user data excluding sensitive information
+    res.status(200).json({
+      user_id: user.user_id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      name: user.name,
+      email: user.email
+    });
+    
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useTheme } from './ThemeContext';
-import ThemeToggle from './ThemeToggle';
 
 const Layout = ({ children }) => {
   const { isDarkMode } = useTheme();
@@ -11,7 +10,6 @@ const Layout = ({ children }) => {
 
   return (
     <div className="app-container">
-      <ThemeToggle />
       {children}
     </div>
   );
