@@ -8,6 +8,7 @@ const app = express();
 
 const { errorHandler } = require("./middleware/errorHandler");
 const { logger } = require("./middleware/logger");
+const { loadModel } = require("./controllers/onnxController");
 
 // Using .env File
 require("dotenv").config();
@@ -25,6 +26,12 @@ app.use(
     credentials: true, // Allows cookies to be sent
   })
 );
+
+// Load ONNX model on server start
+loadModel().then(() => {
+  console.log("Ready to accept requests.");
+});
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(logger);
