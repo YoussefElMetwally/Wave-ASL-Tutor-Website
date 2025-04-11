@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '../LoginSignup/ThemeContext';
-import ThemeToggle from '../LoginSignup/ThemeToggle';
 import './Course.css';
 
 export const LessonVideo = () => {
-  const { courseId } = useParams();
   const navigate = useNavigate();
-  const { isDarkMode } = useTheme();
+  const { courseId } = useParams();
   const [isVideoComplete, setIsVideoComplete] = useState(false);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
@@ -20,10 +19,6 @@ export const LessonVideo = () => {
 
   return (
     <div className="lesson-container">
-      <div className="theme-toggle-wrapper">
-        <ThemeToggle />
-      </div>
-
       <div className="lesson-header">
         <h2>Basic Greetings</h2>
         <div className="lesson-progress">

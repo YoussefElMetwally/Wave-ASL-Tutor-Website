@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../LoginSignup/ThemeContext';
-import ThemeToggle from '../LoginSignup/ThemeToggle';
 import './Course.css';
 
 export const CourseDetails = () => {
@@ -19,10 +18,6 @@ export const CourseDetails = () => {
 
   return (
     <div className="course-details-container">
-      <div className="theme-toggle-wrapper">
-        <ThemeToggle />
-      </div>
-      
       <div className="course-header">
         <div className="course-title-section">
           <h1>Basic Sign Language</h1>

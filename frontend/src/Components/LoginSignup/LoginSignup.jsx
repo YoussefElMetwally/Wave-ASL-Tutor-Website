@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LoginSignup.css';
 import { useTheme } from './ThemeContext';
-import ThemeToggle from './ThemeToggle';
 import user_icon from '../Assets/user (1).png';
 import email_icon from '../Assets/email.png';
 import password_icon from '../Assets/locked-computer.png';
@@ -10,7 +9,7 @@ import password_icon from '../Assets/locked-computer.png';
 export const LoginSignup = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
-  const [action, setAction] = useState("Sign Up");
+  const [action, setAction] = useState("Login");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -65,7 +64,6 @@ export const LoginSignup = () => {
 
   return (
     <div className='container'>
-      <ThemeToggle />
       <div className='header'>
         <div className='text'>{action}</div>
         <div className='underline'></div>

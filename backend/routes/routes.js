@@ -7,6 +7,7 @@ const {
   userRegister,
   enroll,
   updateUserData,
+  getUserData,
 } = require("../controllers/userController");
 const {
   getCourses,
@@ -34,6 +35,7 @@ router.post("/api/register", userRegister);
 // User Routes
 router.post("/api/user/enroll", checkLogin, enroll);
 router.put("/api/user/updateData", updateUserData);
+router.get("/api/user/profile", checkLogin, getUserData);
 
 // Course routes
 router.get("/api/courses", checkLogin, getCourses);
