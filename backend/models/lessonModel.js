@@ -4,7 +4,8 @@ const moment = require("moment");
 const lessonSchema = new mongoose.Schema({
   lesson_id: { type: String, unique: true },
   title: { type: String, required: true },
-  video: { type: String },
+  video: [{ type: String }],
+  answers: [{ type: String }],
   questions: [{ type: mongoose.Schema.Types.String, ref: "question" }], // References Question IDs
 });
 

@@ -5,7 +5,9 @@ const upload = multer();
 let session; // Global inside this file
 
 exports.loadModel = async () => {
-  session = await ort.InferenceSession.create("../AI/keypoint_classifier.onnx");
+  session = await ort.InferenceSession.create(
+    "C:\\Users\\dell\\Desktop\\Graduation Project\\Web_App\\Wave-ASL-Tutor-Website\\backend\\AI\\keypoint_classifier.onnx"
+  );
   console.log("ONNX model loaded.");
 };
 

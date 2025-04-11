@@ -1258,3 +1258,12 @@
 20250409	12:25:36	75367958-2902-4966-961e-e584469b0de1	GET	/api/courses	http://localhost:5173
 20250409	12:26:30	100e1ba0-92ea-4cae-b67a-b89386885d83	GET	/api/courses	http://localhost:5173
 20250409	12:26:30	169a8540-4a71-4624-ab3f-89a504b36a64	GET	/api/courses	http://localhost:5173
+20250411	17:18:33	a7d3de55-b4aa-4166-8d31-562244cc310c	POST	/api/login	http://localhost:5173
+20250411	17:18:33	c8b1f2e0-5a70-432c-9e59-ff21d6280b6f	GET	/api/courses	http://localhost:5173
+20250411	17:18:34	3ef8da62-b4a4-479d-b703-c1012cac8e80	GET	/api/courses	http://localhost:5173
+20250411	17:21:09	8bc68503-5e81-4f9f-81b0-54b8a3c6179e	GET	/api/courses	http://localhost:5173
+20250411	17:21:10	e250e4a6-aab1-44df-a678-cb43cbc4bf78	GET	/api/courses	http://localhost:5173
+20250411	17:21:13	1493fbb5-64e1-4564-817e-940f16c45eaa	GET	/api/courses	http://localhost:5173
+20250411	17:21:13	3a43af22-9580-402a-8394-9c35ec85c8ea	GET	/api/courses	http://localhost:5173
+20250411	17:36:10	847ce65b-a4c4-4297-954f-4af8e64ffeb4	GET	/api/courses	http://localhost:5173
+20250411	17:36:11	e00a5641-95c3-43e9-a56d-ea533ca99c50	GET	/api/courses	http://localhost:5173
