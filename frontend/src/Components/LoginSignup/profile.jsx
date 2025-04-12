@@ -56,7 +56,7 @@ export const ProfilePage = () => {
         xp: 850,
         streak: 7,
         level: "B1",
-        avatar: "👤",
+        avatar: "😊",
         completedLessons: 58,
         achievements: [
             { id: 1, title: "First Steps", icon: "👣", description: "Complete 5 lessons" },

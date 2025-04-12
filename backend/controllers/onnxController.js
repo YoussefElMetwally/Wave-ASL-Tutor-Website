@@ -1,11 +1,13 @@
 const ort = require("onnxruntime-node");
 const multer = require("multer");
 const upload = multer();
+const path = require('path');
 
 let session; // Global inside this file
 
 exports.loadModel = async () => {
-  session = await ort.InferenceSession.create("../AI/keypoint_classifier.onnx");
+  const modelPath = path.join(__dirname, '../AI/keypoint_classifier.onnx');
+  session = await ort.InferenceSession.create(modelPath);
   console.log("ONNX model loaded.");
 };
 

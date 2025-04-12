@@ -20,6 +20,7 @@ export const LessonVideo = () => {
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const { isDarkMode } = useTheme();
+  const [savedRecordings, setSavedRecordings] = useState([]);
 
   useEffect(() => {
     document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
@@ -143,12 +144,26 @@ export const LessonVideo = () => {
     mediaRecorder.onstop = async () => {
       const blob = new Blob(chunks, { type: 'video/webm' });
       const formData = new FormData();
-      formData.append('video', blob);
+      
+      // Create a File object from the Blob
+      const videoFile = new File([blob], 'recording.webm', { type: 'video/webm' });
+      formData.append('video', videoFile);
       formData.append('sign', lesson.answers[currentVideoIndex]);
+      formData.append('lessonId', lessonId);
+
+      // Debug logging
+      console.log('Video file size:', videoFile.size);
+      console.log('FormData contents:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
 
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:8000/api/check-sign', {
+        
+        // First save the recording
+        console.log('Sending recording to backend...');
+        const saveResponse = await fetch('http://localhost:8000/api/save-recording', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -157,15 +172,40 @@ export const LessonVideo = () => {
           credentials: 'include',
         });
 
-        if (!response.ok) {
+        console.log('Save response status:', saveResponse.status);
+        if (!saveResponse.ok) {
+          const errorText = await saveResponse.text();
+          console.error('Save response error:', errorText);
+          throw new Error('Failed to save recording');
+        }
+
+        const saveData = await saveResponse.json();
+        console.log('Save response data:', saveData);
+
+        setSavedRecordings(prev => [...prev, {
+          url: `http://localhost:8000${saveData.filePath}`,
+          sign: lesson.answers[currentVideoIndex],
+          timestamp: new Date().toISOString()
+        }]);
+
+        // Then check if the sign is correct
+        const checkResponse = await fetch('http://localhost:8000/api/check-sign', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+          credentials: 'include',
+        });
+
+        if (!checkResponse.ok) {
           throw new Error('Failed to check sign');
         }
 
-        const data = await response.json();
-        setIsSignCorrect(data.isCorrect);
+        const checkData = await checkResponse.json();
+        setIsSignCorrect(checkData.isCorrect);
 
-        if (data.isCorrect) {
-          // Move to next video after a short delay
+        if (checkData.isCorrect) {
           setTimeout(() => {
             if (currentVideoIndex < lesson.videos.length - 1) {
               setCurrentVideoIndex(prev => prev + 1);
@@ -179,8 +219,8 @@ export const LessonVideo = () => {
           }, 2000);
         }
       } catch (err) {
-        console.error('Error checking sign:', err);
-        alert('Failed to check sign. Please try again.');
+        console.error('Error:', err);
+        alert('Failed to process recording. Please try again.');
       }
     };
 
@@ -349,6 +389,27 @@ export const LessonVideo = () => {
                   </button>
                 )}
               </div>
+
+              {savedRecordings.length > 0 && (
+                <div className="saved-recordings">
+                  <h3>Your Recordings</h3>
+                  <div className="recordings-list">
+                    {savedRecordings.map((recording, index) => (
+                      <div key={index} className="recording-item">
+                        <video 
+                          src={recording.url} 
+                          controls 
+                          className="recording-video"
+                        />
+                        <div className="recording-info">
+                          <span>Sign: {recording.sign}</span>
+                          <span>Time: {new Date(recording.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
