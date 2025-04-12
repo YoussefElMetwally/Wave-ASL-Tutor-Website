@@ -7,6 +7,11 @@ const lessonSchema = new mongoose.Schema({
   videos: [{ type: String }],
   answers: [{ type: String }],
   questions: [{ type: mongoose.Schema.Types.String, ref: "question" }], // References Question IDs
+  model_path: {
+    type: String,
+    required: true,
+    default: process.env.DYNAMIC_PATH,
+  },
 });
 
 lessonSchema.pre("save", async function (next) {
