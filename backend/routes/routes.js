@@ -26,6 +26,7 @@ const {
   createTestScore,
   getTestScores,
 } = require("../controllers/testController");
+const { predict } = require("../controllers/onnxController");
 
 // User authentication routes
 router.post("/api/logout", logout);
@@ -53,7 +54,10 @@ router.get("/api/tests/:id", checkLogin, getTestById);
 router.post("/api/testScores/create", checkLogin, createTestScore);
 router.get("/api/testScores", checkLogin, getTestScores);
 
-// Hugging Face prediction route
-router.post("/api/predict", checkLogin, getPrediction);
+// ONNX prediction route
+router.post("/api/predict", checkLogin, predict);
+
+// // Hugging Face prediction route
+// router.post("/api/predict", checkLogin, getPrediction);
 
 module.exports = router;
