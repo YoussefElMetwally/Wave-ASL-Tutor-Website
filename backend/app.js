@@ -28,9 +28,9 @@ app.use(
 );
 
 // Load ONNX model on server start
-loadModel().then(() => {
-  console.log("Ready to accept requests.");
-});
+// loadModel(process.env.STATIC_PATH, process.env.DYNAMIC_PATH).then(() => {
+//   console.log("Ready to accept requests.");
+// });
 
 app.use(cookieParser());
 app.use(express.json());

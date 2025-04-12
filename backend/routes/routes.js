@@ -14,7 +14,7 @@ const {
   getCourseById,
   getCourseBySlug,
 } = require("../controllers/courseController");
-const { getPrediction } = require("../controllers/huggingFaceController");
+// const { getPrediction } = require("../controllers/huggingFaceController");
 const {
   getLessonQuestions,
   getLessonById,
@@ -27,7 +27,11 @@ const {
   createTestScore,
   getTestScores,
 } = require("../controllers/testController");
-const { predict } = require("../controllers/onnxController");
+const {
+  // predictStatic,
+  // predictDynamic,
+  predict,
+} = require("../controllers/onnxController");
 const {
   incrementCompletedLessons,
 } = require("../controllers/enrollmentController");
@@ -51,19 +55,25 @@ router.get("/api/courses/:id", checkLogin, getCourseById);
 router.get("/api/lessons", checkLogin, getLessons);
 router.get("/api/lessons/:id", checkLogin, getLessonById);
 router.get("/api/lessons/:id/questions", checkLogin, getLessonQuestions);
-router.post("/api/lesson/create", createLesson);
 
 // Test routes
 router.get("/api/tests", checkLogin, getTests);
 router.get("/api/tests/:id", checkLogin, getTestById);
-router.post("/api/testScores/create", checkLogin, createTestScore);
 router.get("/api/testScores", checkLogin, getTestScores);
+router.post("/api/testScores/create", checkLogin, createTestScore);
 
 // Enrollment routes
 router.put("/api/enrollment/increment", checkLogin, incrementCompletedLessons);
 
 // ONNX prediction route
 router.post("/api/predict", checkLogin, predict);
+
+// router.post("/api/predict/static", checkLogin, predictStatic);
+// router.post("/api/predict/dynamic", checkLogin, predictDynamic);
+
+// database population
+router.post("/api/lesson/create", createLesson);
+//router.post("/api/test/create", createTest);
 
 // // Hugging Face prediction route
 // router.post("/api/predict", checkLogin, getPrediction);

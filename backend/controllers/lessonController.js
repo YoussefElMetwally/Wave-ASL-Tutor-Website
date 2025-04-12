@@ -13,15 +13,15 @@ exports.getLessons = async (req, res) => {
 exports.getLessonById = async (req, res) => {
   try {
     const lessonId = req.params.id;
-    console.log('Fetching lesson with ID:', lessonId);
-    
+    console.log("Fetching lesson with ID:", lessonId);
+
     const lesson = await Lesson.findOne({ lesson_id: lessonId });
     if (!lesson) {
-      console.log('Lesson not found');
+      console.log("Lesson not found");
       return res.status(404).json({ message: "Lesson not found" });
     }
-    
-    console.log('Found lesson:', lesson);
+
+    console.log("Found lesson:", lesson);
     res.status(200).json(lesson);
   } catch (error) {
     console.error("Error fetching lesson:", error);
