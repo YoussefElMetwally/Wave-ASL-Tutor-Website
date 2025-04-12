@@ -18,6 +18,7 @@ const {
   getLessonQuestions,
   getLessonById,
   getLessons,
+  createLesson,
 } = require("../controllers/lessonController");
 const {
   getTests,
@@ -26,6 +27,9 @@ const {
   getTestScores,
 } = require("../controllers/testController");
 const { predict } = require("../controllers/onnxController");
+const {
+  incrementCompletedLessons,
+} = require("../controllers/enrollmentController");
 
 // User authentication routes
 router.post("/api/logout", logout);
@@ -45,12 +49,16 @@ router.get("/api/courses/:id", checkLogin, getCourseById);
 router.get("/api/lessons", checkLogin, getLessons);
 router.get("/api/lessons/:id", checkLogin, getLessonById);
 router.get("/api/lessons/:id/questions", checkLogin, getLessonQuestions);
+router.post("/api/lesson/create", createLesson);
 
 // Test routes
 router.get("/api/tests", checkLogin, getTests);
 router.get("/api/tests/:id", checkLogin, getTestById);
 router.post("/api/testScores/create", checkLogin, createTestScore);
 router.get("/api/testScores", checkLogin, getTestScores);
+
+// Enrollment routes
+router.put("/api/enrollment/increment", checkLogin, incrementCompletedLessons);
 
 // ONNX prediction route
 router.post("/api/predict", checkLogin, predict);
