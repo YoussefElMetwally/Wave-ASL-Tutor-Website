@@ -1,5 +1,6 @@
 const Course = require("../models/courseModel");
 const Enrollment = require("../models/enrollmentModel");
+const Lesson = require("../models/lessonModel");
 
 const calculateUserProgress = async (userId, courseId) => {
   try {
@@ -57,5 +58,48 @@ exports.getCourseById = async (req, res) => {
     res.status(200).json(course);
   } catch (error) {
     res.status(500).json({ message: "Invalid ID format" });
+  }
+};
+
+exports.getCourseBySlug = async (req, res) => {
+  try {
+    const courseSlug = req.params.slug;
+    console.log('Fetching course with slug:', courseSlug);
+    
+    const course = await Course.findOne({ 
+      title: { $regex: new RegExp(courseSlug.replace(/-/g, ' '), 'i') }
+    });
+
+    if (!course) {
+      console.log('Course not found');
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    console.log('Found course:', course);
+    console.log('Course lessons array:', course.lessons);
+
+
+    // Fetch lessons using the lesson IDs from the course
+    const lessons = await Lesson.find({ 
+      lesson_id: { $in: course.lessons }
+    });
+    console.log('Fetched lessons:', lessons);
+
+    // Add lesson data to the course object
+    const courseWithLessons = {
+      ...course.toObject(),
+      lessons: lessons.map(lesson => ({
+        id: lesson.lesson_id,
+        title: lesson.title,
+        video: lesson.video,
+        questions: lesson.questions,
+        completed: false // You can add this based on user progress
+      }))
+    };
+
+    res.status(200).json(courseWithLessons);
+  } catch (error) {
+    console.error("Error fetching course by slug:", error);
+    res.status(500).json({ message: "Error fetching course" });
   }
 };

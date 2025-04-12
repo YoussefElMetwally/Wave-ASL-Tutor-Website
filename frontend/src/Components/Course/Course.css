@@ -168,6 +168,9 @@
   padding: 2rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   border: 1px solid var(--border-color);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .lesson-actions {
@@ -184,14 +187,25 @@
   font-weight: bold;
   cursor: pointer;
   transition: transform 0.2s, background-color 0.2s;
+  margin-bottom: -35px;
 }
 
 .practice-button {
-  background-color: var(--accent-color);
-  color: white;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 2rem;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  margin-top: 0.5rem;
 }
 
 .continue-button {
@@ -268,7 +282,38 @@
 }
 
 .video-player {
-  margin: 2rem 0;
+  width: 100%;
+  position: relative;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  margin-bottom: 1rem;
+}
+
+.video-player iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.no-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  background-color: var(--background-secondary);
 }
 
 .main-video {
@@ -278,46 +323,137 @@
 
 /* Practice Styles */
 .practice-container {
-  max-width: 1000px;
+  width: 100%;
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
+  background-color: var(--background-secondary);
+  border-radius: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
 }
 
 .webcam-container {
   position: relative;
   width: 100%;
-  max-width: 640px;
-  margin: 2rem auto;
-  min-height: 480px;
-  background-color: #f8f9fa;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  background-color: #000;
   border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
 }
 
 .webcam-video {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  border-radius: 8px;
+  height: 100%;
+  object-fit: cover;
 }
 
 .countdown-overlay {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .countdown-number {
   font-size: 6rem;
   color: white;
   font-weight: bold;
+}
+
+.recording-overlay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 10px 20px;
+  border-radius: 20px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.recording-dot {
+  width: 12px;
+  height: 12px;
+  background-color: #ff0000;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+
+.feedback-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.feedback-overlay.correct {
+  background-color: rgba(0, 255, 0, 0.3);
+}
+
+.feedback-overlay span {
+  font-size: 3rem;
+  color: white;
+  font-weight: bold;
+}
+
+.practice-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.camera-btn, .record-btn, .back-btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.camera-btn {
+  background-color: #1cb0f6;
+  color: white;
+}
+
+.record-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.back-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.camera-btn:hover, .record-btn:hover, .back-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 /* Button Styles */
@@ -475,4 +611,81 @@
   --text-secondary: #b0b0b0;
   --border-color: #374151;
   --accent-color: #1cb0f6;
+}
+
+.practice-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  margin-bottom: 1rem;
+}
+
+.video-navigation {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  color: white;
+}
+
+.nav-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--accent-color);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.nav-button:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.nav-button:hover:not(:disabled) {
+  background-color: #0d8fd6;
+}
+
+.current-sign {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.practice-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 2rem;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.practice-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.practice-icon {
+  font-size: 1.2rem;
 } 

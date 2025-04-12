@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useTheme } from "./ThemeContext";
 import "./home.css";
 import { Link, useNavigate } from "react-router-dom";
+import { Footer } from "./Footer";
 
 export const Home = () => {
   const { isDarkMode } = useTheme();
@@ -161,7 +162,7 @@ export const Home = () => {
                   <div className="course-footer">
                     <span>{course.lessons?.length || 0} lessons</span>
                     <button
-                      onClick={() => navigate(`/course/${course.course_id}`)}
+                      onClick={() => navigate(`/course/${course.title.toLowerCase().replace(/\s+/g, '-')}`)}
                       className="start-button"
                     >
                       {(course.progress || 0) > 0 ? "Continue" : "Start"}
@@ -173,6 +174,8 @@ export const Home = () => {
           </div>
         </section>
       </main>
+
+      <Footer />
     </div>
   );
 };

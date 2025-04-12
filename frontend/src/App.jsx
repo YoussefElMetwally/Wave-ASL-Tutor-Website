@@ -32,7 +32,7 @@ function App() {
             } 
           />
           <Route 
-            path="/course/:courseId" 
+            path="/course/:courseSlug" 
             element={
               <ProtectedRoute>
                 <CourseDetails />
@@ -40,7 +40,7 @@ function App() {
             } 
           />
           <Route 
-            path="/course/:courseId/lesson" 
+            path="/course/:courseSlug/lesson/:lessonId" 
             element={
               <ProtectedRoute>
                 <LessonVideo />
@@ -48,7 +48,7 @@ function App() {
             } 
           />
           <Route 
-            path="/course/:courseId/practice" 
+            path="/course/:courseSlug/practice" 
             element={
               <ProtectedRoute>
                 <Practice />

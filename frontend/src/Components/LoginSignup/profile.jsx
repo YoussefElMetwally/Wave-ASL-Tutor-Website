@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTheme } from './ThemeContext';
 import { Link } from 'react-router-dom';
 import './profile.css';
+import { Footer } from './Footer';
 
 export const ProfilePage = () => {
     const { isDarkMode, toggleTheme } = useTheme();
@@ -148,6 +149,8 @@ export const ProfilePage = () => {
                     </div>
                 </section>
             </main>
+
+            <Footer />
         </div>
     );
 };

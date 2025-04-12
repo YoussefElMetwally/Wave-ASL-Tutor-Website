@@ -12,13 +12,20 @@ exports.getLessons = async (req, res) => {
 
 exports.getLessonById = async (req, res) => {
   try {
-    const lesson = await Lesson.findOne({ lesson_id: req.body.lesson_id });
+    const lessonId = req.params.id;
+    console.log('Fetching lesson with ID:', lessonId);
+    
+    const lesson = await Lesson.findOne({ lesson_id: lessonId });
     if (!lesson) {
-      return res.status(400).json({ message: "Lesson not found" });
+      console.log('Lesson not found');
+      return res.status(404).json({ message: "Lesson not found" });
     }
+    
+    console.log('Found lesson:', lesson);
     res.status(200).json(lesson);
   } catch (error) {
-    res.status(500).json({ message: "Invalid ID format" });
+    console.error("Error fetching lesson:", error);
+    res.status(500).json({ message: "Error fetching lesson" });
   }
 };
 
