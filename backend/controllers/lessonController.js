@@ -41,3 +41,21 @@ exports.getLessonQuestions = async (req, res) => {
     res.status(500).json({ message: "Error retrieving lesson questions" });
   }
 };
+
+exports.createLesson = (req, res) => {
+  let newLesson = new Lesson({
+    title: req.body.title,
+    videos: req.body.videos,
+    answers: req.body.answers,
+  });
+  newLesson
+    .save({ useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+      console.log(newLesson);
+      res.status(200);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500);
+    });
+};
