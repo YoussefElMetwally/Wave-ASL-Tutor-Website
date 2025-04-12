@@ -12,6 +12,7 @@ const {
 const {
   getCourses,
   getCourseById,
+  getCourseBySlug,
 } = require("../controllers/courseController");
 const { getPrediction } = require("../controllers/huggingFaceController");
 const {
@@ -38,6 +39,7 @@ router.get("/api/user/profile", checkLogin, getUserData);
 
 // Course routes
 router.get("/api/courses", checkLogin, getCourses);
+router.get("/api/courses/:slug", checkLogin, getCourseBySlug);
 router.get("/api/courses/:id", checkLogin, getCourseById);
 
 // Lesson routes
