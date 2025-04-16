@@ -1,0 +1,40 @@
+/* Page Transition Styles */
+.page-transition-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Fade and slide transition */
+.page-transition {
+  animation: pageTransition 0.3s ease-out;
+}
+
+@keyframes pageTransition {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ensure smooth transitions for all elements */
+* {
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+/* Prevent scroll during transition */
+.page-transition {
+  overflow: hidden;
+}
+
+/* Smooth scrolling behavior */
+html {
+  scroll-behavior: smooth;
+} 
