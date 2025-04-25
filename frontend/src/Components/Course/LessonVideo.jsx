@@ -260,7 +260,12 @@ export const LessonVideo = () => {
   }, []);
 
   if (loading) {
-    return <div className="loading">Loading lesson...</div>;
+    return (
+      <div className="loading">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading your lesson...</div>
+      </div>
+    );
   }
 
   if (error) {

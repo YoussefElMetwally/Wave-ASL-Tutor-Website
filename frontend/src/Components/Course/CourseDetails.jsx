@@ -50,7 +50,12 @@ export const CourseDetails = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading course details...</div>;
+    return (
+      <div className="loading">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading course details...</div>
+      </div>
+    );
   }
 
   if (error) {

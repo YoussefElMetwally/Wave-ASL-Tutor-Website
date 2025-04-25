@@ -5,8 +5,8 @@
   --secondary-color: #0066cc;
   --accent-color: #ff6b6b;
   --text-color: #333;
-  --background-color: #e0f4ff;  /* Very light blue background */
-  --card-bg: #f8f9fa;
+  --background-color: #f8f9fa;
+  --card-bg: #ffffff;
   --progress-bg: #e9ecef;
   --gradient-primary: linear-gradient(135deg, #00aaff, #0066cc);
   --gradient-accent: linear-gradient(135deg, #ff6b6b, #ff4757);
@@ -16,24 +16,24 @@
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   --border-radius: 8px;
   --primary-hover: #0088cc;
-  --container-bg: #ffffff;     /* Container backgrounds */
+  --container-bg: #ffffff;
   --border-color: #e0e0e0;
   --button-text: #ffffff;
-  --course-image-bg: #e0f4ff;
+  --course-image-bg: #f5f5f5;
   --nav-bg: #ffffff;
 }
 
 [data-theme="dark"] {
   /* Dark Theme Variables */
-  --background-color: #1e1e2f; /* Dark main background */
-  --container-bg: #2a2a3d;     /* Dark container backgrounds */
+  --background-color: #121212;
+  --container-bg: #1e1e1e;
   --text-color: #ffffff;
-  --border-color: #4a4a5d;
-  --progress-bg: #3a3a4d;
-  --course-image-bg: #2a3a4d;
-  --nav-bg: #2a2a3d;
+  --border-color: #404040;
+  --progress-bg: #2d2d2d;
+  --course-image-bg: #2d2d2d;
+  --nav-bg: #1e1e1e;
+  --card-bg: #1e1e1e;
 }
-
 
 * {
   transition: background-color 0.15s ease,
@@ -72,7 +72,11 @@ body {
 .logo {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--primary-color);
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
 }
 
 /* User Profile Section */
@@ -221,6 +225,7 @@ body {
   z-index: 9999;
 }
 /* Add this to ensure full background coverage */
+
 body, .home-container {
   background-color: var(--background-color);
 }
@@ -273,7 +278,7 @@ body, .home-container {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: var(--background-tertiary);
+  background-color: var(--container-bg);
   border: 2px solid var(--border-color);
   display: flex;
   align-items: center;
@@ -302,12 +307,70 @@ body, .home-container {
 }
 
 /* Remove the .switch class if no longer needed */
-.loading, .error {
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1.5rem;
+}
+
+.loading-spinner:after {
+  content: " ";
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 6px solid var(--primary-color);
+  border-color: var(--primary-color) transparent var(--primary-color) transparent;
+  animation: loading-spinner 1.2s linear infinite;
+}
+
+.loading-text {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--text-color);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.error {
   padding: 2rem;
   text-align: center;
   font-size: 1.2rem;
+  color: var(--accent-color);
+  background-color: rgba(255, 107, 107, 0.1);
+  border-radius: 8px;
+  max-width: 600px;
+  margin: 2rem auto;
 }
-
 
 .progress-circle span {
   background: var(--container-bg);

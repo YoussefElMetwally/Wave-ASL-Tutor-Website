@@ -6,7 +6,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: 100vh;
-  background: radial-gradient(#121212, #1e1e2f);
+  background-color: var(--background-color);
 }
 
 code {
@@ -17,7 +17,7 @@ code {
 /* Add to your global CSS (index.css) */
 /* In your global CSS */
 :root {
-  --bg-color: #f8f9fa;
+  --background-color: #f8f9fa;
   --container-bg: #ffffff;
   --text-color: #333333;
   --primary-color: #00aaff;
@@ -25,21 +25,21 @@ code {
 }
 
 [data-theme="dark"] {
-  --bg-color: #1e1e2f;
-  --container-bg: #2a2a3d;
+  --background-color: #121212;
+  --container-bg: #1e1e1e;
   --text-color: #ffffff;
   --primary-color: #0088cc;
-  --nav-bg: #2a2a3d;
+  --nav-bg: #1e1e1e;
 }
 
 body {
-  background: var(--bg-color);
+  background-color: var(--background-color);
   color: var(--text-color);
   transition: all 0.3s ease;
 }
 
 .home-container {
-  background: var(--bg-color);
+  background-color: var(--background-color);
 }
 
 button {

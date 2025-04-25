@@ -114,7 +114,12 @@ const user = {
   }, []);
 
   if (loading) {
-    return <div className="loading">Loading courses...</div>;
+    return (
+      <div className="loading">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading your courses...</div>
+      </div>
+    );
   }
 
   if (error) {
@@ -164,7 +169,7 @@ const user = {
             <div className="course-card highlighted">
               <div
                 className="course-image"
-                style={{ background: isDarkMode ? "#2a3a4d" : "#e0f4ff" }}
+                style={{ backgroundColor: 'var(--course-image-bg)' }}
               >
                 <span className="hand-emoji">👋</span>
               </div>
@@ -190,7 +195,7 @@ const user = {
                 </div>
                 <div
                   className="course-image"
-                  style={{ background: isDarkMode ? "#2a3a4d" : "#e0f4ff" }}
+                  style={{ backgroundColor: 'var(--course-image-bg)' }}
                 >
                   <span className="hand-emoji">✋</span>
                 </div>

@@ -1,7 +1,7 @@
 :root {
     --primary-color: #00aaff;
     --secondary-color: #0066cc;
-    --accent-color: #ff6b6b;
+    --accent-color: #00aaff;
     --text-color: #333;
     --background-color: #e0f4ff;  /* Very light blue background */
     --card-bg: #f8f9fa;
@@ -14,6 +14,18 @@
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --border-radius: 8px;
 }
+
+[data-theme="dark"] {
+    /* Dark Theme Variables */
+    --background-color: #121212;
+    --container-bg: #1e1e1e;
+    --text-color: #ffffff;
+    --border-color: #404040;
+    --progress-bg: #2d2d2d;
+    --course-image-bg: #2d2d2d;
+    --nav-bg: #1e1e1e;
+    --card-bg: #1e1e1e;
+  }
 
 /* Profile Page Styles */
 .profile-container {
