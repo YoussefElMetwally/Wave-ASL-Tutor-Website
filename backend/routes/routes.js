@@ -1,28 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '../uploads/recordings');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Configure multer for video uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'recording-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Configure multer to use memory storage instead of disk storage
 const upload = multer({ 
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
@@ -48,16 +30,12 @@ const {
   getCourseById,
   getCourseBySlug,
 } = require("../controllers/courseController");
-// const { getPrediction } = require("../controllers/huggingFaceController");
+const { getPrediction } = require("../controllers/huggingFaceController");
 const {
   getLessonQuestions,
   getLessonById,
   getLessons,
-<<<<<<< HEAD
   saveRecording,
-=======
-  createLesson,
->>>>>>> a479feda71c60ab7bea3b3a34125fb53054dd0c2
 } = require("../controllers/lessonController");
 const {
   getTests,
@@ -65,14 +43,7 @@ const {
   createTestScore,
   getTestScores,
 } = require("../controllers/testController");
-const {
-  // predictStatic,
-  // predictDynamic,
-  predict,
-} = require("../controllers/onnxController");
-const {
-  incrementCompletedLessons,
-} = require("../controllers/enrollmentController");
+const { predict } = require("../controllers/onnxController");
 
 // User authentication routes
 router.post("/api/logout", logout);
@@ -97,21 +68,11 @@ router.get("/api/lessons/:id/questions", checkLogin, getLessonQuestions);
 // Test routes
 router.get("/api/tests", checkLogin, getTests);
 router.get("/api/tests/:id", checkLogin, getTestById);
-router.get("/api/testScores", checkLogin, getTestScores);
 router.post("/api/testScores/create", checkLogin, createTestScore);
-
-// Enrollment routes
-router.put("/api/enrollment/increment", checkLogin, incrementCompletedLessons);
+router.get("/api/testScores", checkLogin, getTestScores);
 
 // ONNX prediction route
 router.post("/api/predict", checkLogin, predict);
-
-// router.post("/api/predict/static", checkLogin, predictStatic);
-// router.post("/api/predict/dynamic", checkLogin, predictDynamic);
-
-// database population
-router.post("/api/lesson/create", createLesson);
-//router.post("/api/test/create", createTest);
 
 // // Hugging Face prediction route
 // router.post("/api/predict", checkLogin, getPrediction);
