@@ -1,3 +1,32 @@
+:root {
+    --primary-color: #00aaff;
+    --secondary-color: #0066cc;
+    --accent-color: #00aaff;
+    --text-color: #333;
+    --background-color: #e0f4ff;  /* Very light blue background */
+    --card-bg: #f8f9fa;
+    --progress-bg: #e9ecef;
+    --gradient-primary: linear-gradient(135deg, #00aaff, #0066cc);
+    --gradient-accent: linear-gradient(135deg, #ff6b6b, #ff4757);
+    --gradient-success: linear-gradient(135deg, #4CAF50, #45a049);
+    --gradient-warning: linear-gradient(135deg, #FFC107, #ffa000);
+    --gradient-danger: linear-gradient(135deg, #f44336, #d32f2f);
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --border-radius: 8px;
+}
+
+[data-theme="dark"] {
+    /* Dark Theme Variables */
+    --background-color: #121212;
+    --container-bg: #1e1e1e;
+    --text-color: #ffffff;
+    --border-color: #404040;
+    --progress-bg: #2d2d2d;
+    --course-image-bg: #2d2d2d;
+    --nav-bg: #1e1e1e;
+    --card-bg: #1e1e1e;
+  }
+
 /* Profile Page Styles */
 .profile-container {
     min-height: 100vh;
@@ -52,12 +81,20 @@
 .avatar {
     width: 120px;
     height: 120px;
-    background: var(--primary-color);
+    background: var(--gradient-primary);
     border-radius: 50%;
     display: grid;
     place-items: center;
     font-size: 3rem;
     margin: 0 auto 1rem;
+    color: white;
+    box-shadow: var(--shadow);
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .level {
@@ -109,15 +146,39 @@
 
 .achievement-card {
     background: var(--container-bg);
+    border-radius: var(--border-radius);
     padding: 1.5rem;
-    border-radius: 15px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+    position: relative;
+    overflow: hidden;
+    color: var(--text-color);
+}
+
+.achievement-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--gradient-accent);
 }
 
 .achievement-icon {
-    font-size: 2rem;
+    font-size: 2.5rem;
     margin-bottom: 1rem;
+}
+
+.achievement-card h4 {
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.achievement-card p {
+    color: var(--secondary-text);
+    font-size: 0.9rem;
 }
 
 .settings-section {
@@ -142,30 +203,49 @@
 .toggle-switch {
     width: 50px;
     height: 25px;
-    background: var(--progress-bg);
+    background: var(--gradient-primary);
     border-radius: 15px;
     position: relative;
     border: none;
     cursor: pointer;
+    box-shadow: var(--shadow);
 }
 
 .toggle-switch.active {
-    background: var(--primary-color);
+    background: var(--gradient-success);
 }
 
 .toggle-knob {
     position: absolute;
     width: 21px;
     height: 21px;
-    background: var(--button-text);
+    background: white;
     border-radius: 50%;
     top: 2px;
     left: 2px;
     transition: transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-switch.active .toggle-knob {
     transform: translateX(25px);
+}
+
+.progress-container {
+    width: 100%;
+    height: 12px;
+    background: var(--progress-bg);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--gradient-primary);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 170, 255, 0.3);
 }
 
 @media (max-width: 768px) {

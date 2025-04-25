@@ -7,6 +7,72 @@
   color: var(--text-color);
 }
 
+/* Loading Animation */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1.5rem;
+}
+
+.loading-spinner:after {
+  content: " ";
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 6px solid var(--primary-color, #00aaff);
+  border-color: var(--primary-color, #00aaff) transparent var(--primary-color, #00aaff) transparent;
+  animation: loading-spinner 1.2s linear infinite;
+}
+
+.loading-text {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--text-color, #333);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.error {
+  padding: 2rem;
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--accent-color, #ff6b6b);
+  background-color: rgba(255, 107, 107, 0.1);
+  border-radius: 8px;
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
 .course-title-section {
   text-align: center;
   margin-bottom: 3rem;
@@ -417,7 +483,7 @@
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin-top: 2rem;
 }
 
 .camera-btn, .record-btn, .back-btn {
@@ -448,12 +514,6 @@
 .camera-btn:hover, .record-btn:hover, .back-btn:hover {
   transform: translateY(-1px);
   filter: brightness(1.1);
-}
-
-@keyframes blink {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
 }
 
 /* Button Styles */
@@ -515,38 +575,11 @@
   background-color: #0056b3;
 }
 
-.camera-btn {
-  padding: 0.8rem 1.5rem;
-  background-color: #17a2b8;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-}
-
-.camera-btn:hover {
-  background-color: #138496;
-}
-
 .practice-controls {
   display: flex;
   justify-content: center;
   gap: 1rem;
   margin-top: 2rem;
-}
-
-.recording-overlay {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 10px 20px;
-  border-radius: 20px;
-  color: white;
-  display: flex;
-  align-items: center;
 }
 
 .recording-indicator {
@@ -555,29 +588,7 @@
   gap: 10px;
 }
 
-.recording-dot {
-  width: 12px;
-  height: 12px;
-  background-color: #ff0000;
-  border-radius: 50%;
-  animation: blink 1s infinite;
-}
-
-.record-btn {
-  padding: 0.8rem 1.5rem;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-}
-
-.record-btn:hover {
-  background-color: #c82333;
-}
-
+/* Only keep one blink animation definition */
 @keyframes blink {
   0% { opacity: 1; }
   50% { opacity: 0; }
@@ -688,4 +699,46 @@
 
 .practice-icon {
   font-size: 1.2rem;
+}
+
+.saved-recordings {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+}
+
+.saved-recordings h3 {
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.recordings-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.recording-item {
+  background-color: var(--background-tertiary);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.recording-video {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background-color: #000;
+}
+
+.recording-info {
+  padding: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.recording-info span {
+  display: block;
+  margin-bottom: 0.25rem;
 } 

@@ -10,6 +10,8 @@ export const Home = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [firstName, setFirstName] = useState("User");
+
 
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
@@ -39,6 +41,47 @@ export const Home = () => {
       navigate("/", { replace: true });
     }
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+        try {
+            // Check if we have a token
+            const token = localStorage.getItem("token");
+            if (!token) return;
+            
+            // Get user data from API call
+            const response = await fetch("http://localhost:8000/api/user/profile", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                credentials: "include"
+            });
+            
+            if (!response.ok) {
+                throw new Error("Failed to fetch user data");
+            }
+            
+            const userData = await response.json();
+            console.log("User data:", userData);
+            
+            // Check if userData has direct first_name property or nested in a user object
+            if (userData && userData.first_name) {
+                setFirstName(userData.first_name);
+            } else if (userData && userData.user && userData.user.first_name) {
+                setFirstName(userData.user.first_name);
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
+    };
+    
+    fetchUserData();
+}, []);
+const user = {
+  name: firstName,
+}
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -71,7 +114,12 @@ export const Home = () => {
   }, []);
 
   if (loading) {
-    return <div className="loading">Loading courses...</div>;
+    return (
+      <div className="loading">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading your courses...</div>
+      </div>
+    );
   }
 
   if (error) {
@@ -106,7 +154,7 @@ export const Home = () => {
 
       <main className="main-content">
         <div className="header-section">
-          <h1>Welcome back!</h1>
+          <h1>Welcome back, {firstName}!</h1>
           <div className="daily-goal">
             <div className="progress-circle">
               <span>75%</span>
@@ -121,7 +169,7 @@ export const Home = () => {
             <div className="course-card highlighted">
               <div
                 className="course-image"
-                style={{ background: isDarkMode ? "#2a3a4d" : "#e0f4ff" }}
+                style={{ backgroundColor: 'var(--course-image-bg)' }}
               >
                 <span className="hand-emoji">👋</span>
               </div>
@@ -147,7 +195,7 @@ export const Home = () => {
                 </div>
                 <div
                   className="course-image"
-                  style={{ background: isDarkMode ? "#2a3a4d" : "#e0f4ff" }}
+                  style={{ backgroundColor: 'var(--course-image-bg)' }}
                 >
                   <span className="hand-emoji">✋</span>
                 </div>

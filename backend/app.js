@@ -45,6 +45,7 @@ app.use(morgan("dev"));
 
 // Using Resources Folder
 app.use(express.static("src"));
+app.use('/uploads', express.static('uploads'));
 
 // Using Routes
 const routes = require("./routes/routes");

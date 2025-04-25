@@ -1,5 +1,5 @@
 .footer {
-  background-color: var(--background-secondary);
+  background-color: var(--container-bg);
   color: var(--text-color);
   padding: 1.5rem 1rem 0.75rem;
   margin-top: 10rem;
@@ -27,7 +27,7 @@
 }
 
 .footer-section p {
-  color: var(--text-secondary);
+  color: var(--secondary-text);
   line-height: 1.3;
   font-size: 0.85rem;
   margin-bottom: 0.5rem;
@@ -44,14 +44,14 @@
 }
 
 .footer-section ul li a {
-  color: var(--text-secondary);
+  color: var(--secondary-text);
   text-decoration: none;
   transition: color 0.2s;
   font-size: 0.85rem;
 }
 
 .footer-section ul li a:hover {
-  color: var(--accent-color);
+  color: var(--primary-color);
 }
 
 .social-links {
@@ -60,12 +60,12 @@
 }
 
 .social-link {
-  color: var(--text-secondary);
+  color: var(--secondary-text);
   transition: color 0.2s;
 }
 
 .social-link:hover {
-  color: var(--accent-color);
+  color: var(--primary-color);
 }
 
 .social-link svg {
@@ -86,7 +86,7 @@
 }
 
 .footer-bottom p {
-  color: var(--text-secondary);
+  color: var(--secondary-text);
   margin: 0;
   font-size: 0.85rem;
 }
@@ -97,19 +97,19 @@
 }
 
 .footer-links a {
-  color: var(--text-secondary);
+  color: var(--secondary-text);
   text-decoration: none;
   transition: color 0.2s;
   font-size: 0.85rem;
 }
 
 .footer-links a:hover {
-  color: var(--accent-color);
+  color: var(--primary-color);
 }
 
 /* Dark mode specific styles */
 .footer.dark {
-  background-color: var(--background-tertiary);
+  background-color: var(--container-bg);
 }
 
 @media (max-width: 768px) {

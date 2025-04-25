@@ -6,6 +6,18 @@ import user_icon from '../Assets/user (1).png';
 import email_icon from '../Assets/email.png';
 import password_icon from '../Assets/locked-computer.png';
 
+const Popup = ({ message, onClose }) => {
+  return (
+    <div className="popup-overlay">
+      <div className="popup-content">
+        <h3>Error</h3>
+        <p>{message}</p>
+        <button onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+};
+
 export const LoginSignup = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
@@ -17,6 +29,8 @@ export const LoginSignup = () => {
     password: "",
   });
   const [message, setMessage] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
 
   useEffect(() => {
     document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
@@ -26,7 +40,8 @@ export const LoginSignup = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent default form submission
     const endpoint = action === "Login" 
       ? "http://localhost:8000/api/login" 
       : "http://localhost:8000/api/register";
@@ -46,7 +61,11 @@ export const LoginSignup = () => {
       const data = await response.json();
       console.log("API Response:", data);
   
-      setMessage(data.message || "Success!");
+      if (data.status === 400) {
+        setPopupMessage(data.message);
+        setShowPopup(true);
+        return;
+      }
   
       if (data.token) {
         console.log("Token found:", data.token);
@@ -58,12 +77,19 @@ export const LoginSignup = () => {
       }
     } catch (error) {
       console.error("API request failed:", error);
-      setMessage("An error occurred. Please try again.");
+      setPopupMessage("An error occurred. Please try again.");
+      setShowPopup(true);
     }
   };
 
   return (
     <div className='container'>
+      {showPopup && (
+        <Popup 
+          message={popupMessage} 
+          onClose={() => setShowPopup(false)} 
+        />
+      )}
       <div className='header'>
         <div className='text'>{action}</div>
         <div className='underline'></div>
@@ -79,7 +105,7 @@ export const LoginSignup = () => {
         </div>
       </div>
       
-      <div className='inputs'>
+      <form onSubmit={handleSubmit} className="inputs">
         {action === "Login" ? null : (
           <>
             <div className="input">
@@ -116,16 +142,16 @@ export const LoginSignup = () => {
                  value={formData.password} 
                  onChange={handleChange} />
         </div>
-      </div>
-      <div className="forgot-password">
-        Lost Password? <span>Click Here!</span>
-      </div>
-      {message && <div className="message">{message}</div>}
-      <div className="submit-container">
-        <div className="submit" onClick={handleSubmit}>
-          {action}
+        <div className="forgot-password">
+          Lost Password? <span>Click Here!</span>
         </div>
-      </div>
+        {message && <div className="message">{message}</div>}
+        <div className="submit-container">
+          <button type="submit" className="submit">
+            {action}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
