@@ -16,15 +16,15 @@ exports.getLessons = async (req, res) => {
 exports.getLessonById = async (req, res) => {
   try {
     const lessonId = req.params.id;
-    console.log('Fetching lesson with ID:', lessonId);
-    
+    console.log("Fetching lesson with ID:", lessonId);
+
     const lesson = await Lesson.findOne({ lesson_id: lessonId });
     if (!lesson) {
-      console.log('Lesson not found');
+      console.log("Lesson not found");
       return res.status(404).json({ message: "Lesson not found" });
     }
-    
-    console.log('Found lesson:', lesson);
+
+    console.log("Found lesson:", lesson);
     res.status(200).json(lesson);
   } catch (error) {
     console.error("Error fetching lesson:", error);
@@ -52,6 +52,7 @@ exports.getLessonQuestions = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 exports.saveRecording = async (req, res) => {
   try {
     if (!req.file) {
@@ -70,4 +71,22 @@ exports.saveRecording = async (req, res) => {
     console.error('Error saving recording:', error);
     res.status(500).json({ error: 'Failed to save recording' });
   }
+=======
+exports.createLesson = (req, res) => {
+  let newLesson = new Lesson({
+    title: req.body.title,
+    videos: req.body.videos,
+    answers: req.body.answers,
+  });
+  newLesson
+    .save({ useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+      console.log(newLesson);
+      res.status(200);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500);
+    });
+>>>>>>> a479feda71c60ab7bea3b3a34125fb53054dd0c2
 };

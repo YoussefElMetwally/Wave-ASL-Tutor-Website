@@ -14,6 +14,7 @@ const db = () => {
     })
     .catch((err) => {
       console.log("Connection failed", err);
+      db();
     });
 };
 

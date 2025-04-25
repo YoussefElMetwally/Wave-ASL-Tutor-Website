@@ -1,2 +1,6 @@
 logs
+<<<<<<< HEAD
 node_modules
+=======
+reqLog.log
+>>>>>>> a479feda71c60ab7bea3b3a34125fb53054dd0c2

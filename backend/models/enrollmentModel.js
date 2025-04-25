@@ -13,6 +13,11 @@ const enrollmentSchema = new mongoose.Schema({
   completed_lessons: { type: Number, default: 0 },
   completed_tests: { type: Number, default: 0 },
   progress_percentage: { type: Number, default: 0 },
+  status: {
+    type: String,
+    enum: ["Enrolled", "Completed"],
+    default: "Enrolled",
+  },
 });
 
 enrollmentSchema.pre("save", async function (next) {
