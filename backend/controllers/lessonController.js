@@ -1,7 +1,5 @@
 const Lesson = require("../models/lessonModel");
 const Question = require("../models/questionModel");
-const fs = require('fs');
-const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 exports.getLessons = async (req, res) => {
@@ -52,7 +50,6 @@ exports.getLessonQuestions = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 exports.saveRecording = async (req, res) => {
   try {
     if (!req.file) {
@@ -62,31 +59,22 @@ exports.saveRecording = async (req, res) => {
     const userId = req.user.user_id;
     const lessonId = req.body.lessonId;
     const sign = req.body.sign;
-
+    
+    // Here you can process the video data directly from memory
+    // The video data is available in req.file.buffer
+    
+    // Process video data here - for example, you might:
+    // 1. Send it to a video processing service
+    // 2. Analyze it directly
+    // 3. Stream it to another storage service
+    
     res.status(200).json({
-      message: 'Recording saved successfully',
-      filePath: `/uploads/recordings/${req.file.filename}`
+      message: 'Recording processed successfully',
+      videoSize: req.file.size,
+      mimeType: req.file.mimetype
     });
   } catch (error) {
-    console.error('Error saving recording:', error);
-    res.status(500).json({ error: 'Failed to save recording' });
+    console.error('Error processing recording:', error);
+    res.status(500).json({ error: 'Failed to process recording' });
   }
-=======
-exports.createLesson = (req, res) => {
-  let newLesson = new Lesson({
-    title: req.body.title,
-    videos: req.body.videos,
-    answers: req.body.answers,
-  });
-  newLesson
-    .save({ useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => {
-      console.log(newLesson);
-      res.status(200);
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500);
-    });
->>>>>>> a479feda71c60ab7bea3b3a34125fb53054dd0c2
 };
