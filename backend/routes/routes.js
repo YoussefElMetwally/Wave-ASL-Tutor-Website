@@ -1,21 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const multer = require('multer');
-
-// Configure multer to use memory storage instead of disk storage
-const upload = multer({ 
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    // Accept video files only
-    if (!file.mimetype.startsWith('video/')) {
-      return cb(new Error('Only video files are allowed!'), false);
-    }
-    cb(null, true);
-  }
-});
 
 const { checkLogin, logout } = require("../controllers/authController");
 const {
@@ -30,12 +14,12 @@ const {
   getCourseById,
   getCourseBySlug,
 } = require("../controllers/courseController");
-const { getPrediction } = require("../controllers/huggingFaceController");
 const {
   getLessonQuestions,
   getLessonById,
   getLessons,
   saveRecording,
+  createLesson,
 } = require("../controllers/lessonController");
 const {
   getTests,
@@ -43,7 +27,11 @@ const {
   createTestScore,
   getTestScores,
 } = require("../controllers/testController");
-const { predict } = require("../controllers/onnxController");
+const { classify } = require("../controllers/onnxController");
+const {
+  incrementCompletedLessons,
+} = require("../controllers/enrollmentController");
+
 
 // User authentication routes
 router.post("/api/logout", logout);
@@ -72,12 +60,10 @@ router.post("/api/testScores/create", checkLogin, createTestScore);
 router.get("/api/testScores", checkLogin, getTestScores);
 
 // ONNX prediction route
-router.post("/api/predict", checkLogin, predict);
+router.post("/api/classify", checkLogin, classify);
 
-// // Hugging Face prediction route
-// router.post("/api/predict", checkLogin, getPrediction);
-
-// Save recording route
-router.post("/api/save-recording", checkLogin, upload.single('video'), saveRecording);
+// database population
+router.post("/api/lesson/create", createLesson);
+//router.post("/api/test/create", createTest);
 
 module.exports = router;
