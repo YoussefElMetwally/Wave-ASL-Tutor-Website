@@ -2,7 +2,7 @@ const ort = require("onnxruntime-node");
 const Lesson = require("../models/lessonModel");
 const path = require("path");
 
-let model;
+let session; // Global inside this file
 
 exports.classify = async (req, res) => {
   try {

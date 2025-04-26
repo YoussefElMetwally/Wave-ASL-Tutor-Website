@@ -32,6 +32,7 @@ const {
   incrementCompletedLessons,
 } = require("../controllers/enrollmentController");
 
+
 // User authentication routes
 router.post("/api/logout", logout);
 router.post("/api/login", userLogin);
@@ -55,11 +56,8 @@ router.get("/api/lessons/:id/questions", checkLogin, getLessonQuestions);
 // Test routes
 router.get("/api/tests", checkLogin, getTests);
 router.get("/api/tests/:id", checkLogin, getTestById);
-router.get("/api/testScores", checkLogin, getTestScores);
 router.post("/api/testScores/create", checkLogin, createTestScore);
-
-// Enrollment routes
-router.put("/api/enrollment/increment", checkLogin, incrementCompletedLessons);
+router.get("/api/testScores", checkLogin, getTestScores);
 
 // ONNX prediction route
 router.post("/api/classify", checkLogin, classify);
