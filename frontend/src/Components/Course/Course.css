@@ -33,7 +33,8 @@
   margin: 8px;
   border-radius: 50%;
   border: 6px solid var(--primary-color, #00aaff);
-  border-color: var(--primary-color, #00aaff) transparent var(--primary-color, #00aaff) transparent;
+  border-color: var(--primary-color, #00aaff) transparent
+    var(--primary-color, #00aaff) transparent;
   animation: loading-spinner 1.2s linear infinite;
 }
 
@@ -54,7 +55,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -245,7 +247,8 @@
   margin-top: 1.5rem;
 }
 
-.practice-button, .continue-button {
+.practice-button,
+.continue-button {
   padding: 1rem 2rem;
   border: none;
   border-radius: 8px;
@@ -279,7 +282,8 @@
   color: white;
 }
 
-.practice-button:hover, .continue-button:hover {
+.practice-button:hover,
+.continue-button:hover {
   transform: translateY(-1px);
   filter: brightness(1.1);
 }
@@ -486,7 +490,9 @@
   margin-top: 2rem;
 }
 
-.camera-btn, .record-btn, .back-btn {
+.camera-btn,
+.record-btn,
+.back-btn {
   padding: 0.8rem 1.5rem;
   border: none;
   border-radius: 8px;
@@ -511,7 +517,9 @@
   color: white;
 }
 
-.camera-btn:hover, .record-btn:hover, .back-btn:hover {
+.camera-btn:hover,
+.record-btn:hover,
+.back-btn:hover {
   transform: translateY(-1px);
   filter: brightness(1.1);
 }
@@ -590,9 +598,15 @@
 
 /* Only keep one blink animation definition */
 @keyframes blink {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Add these new styles for dark mode support */
@@ -614,7 +628,7 @@
   --accent-color: #1cb0f6;
 }
 
-[data-theme='dark'] {
+[data-theme="dark"] {
   --background-color: #2a3a4d;
   --background-secondary: #1f2937; /* Darker blue-grey for containers in dark mode */
   --background-tertiary: #374151; /* Slightly lighter for icons */
@@ -741,4 +755,139 @@
 .recording-info span {
   display: block;
   margin-bottom: 0.25rem;
-} 
+}
+
+/* Add these styles to the end of the file */
+
+.hand-detected-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 200, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  z-index: 20;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  animation: pulse 1.5s infinite;
+}
+
+.hand-detected-indicator::before {
+  content: "👋";
+  margin-right: 6px;
+  font-size: 1.2em;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.recording-debug {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.webcam-container {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 75%; /* 4:3 Aspect Ratio */
+  overflow: hidden;
+  background-color: #111;
+  border-radius: 8px;
+}
+
+.webcam-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.practice-tips {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.practice-tips h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.practice-tips ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.practice-tips li {
+  margin-bottom: 0.5rem;
+  color: #444;
+}
+
+/* Dark mode support */
+[data-theme="dark"] .practice-tips {
+  background-color: #2a2a2a;
+}
+
+[data-theme="dark"] .practice-tips h3 {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .practice-tips li {
+  color: #c0c0c0;
+}
+
+.recording-result {
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--background-secondary);
+}
+
+.result-indicator {
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.result-indicator.correct {
+  background-color: rgba(0, 200, 0, 0.2);
+  color: #008800;
+}
+
+.result-indicator.incorrect {
+  background-color: rgba(255, 0, 0, 0.2);
+  color: #cc0000;
+}
+
+[data-theme="dark"] .result-indicator.correct {
+  background-color: rgba(0, 200, 0, 0.3);
+  color: #44ff44;
+}
+
+[data-theme="dark"] .result-indicator.incorrect {
+  background-color: rgba(255, 0, 0, 0.3);
+  color: #ff5555;
+}

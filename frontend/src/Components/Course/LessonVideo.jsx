@@ -1,7 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useTheme } from '../LoginSignup/ThemeContext';
-import './Course.css';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useTheme } from "../LoginSignup/ThemeContext";
+import "./Course.css";
+// Import MediaPipe Hands library and utilities
+import { Hands } from "@mediapipe/hands";
+import { Camera } from "@mediapipe/camera_utils";
+import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
+
+// Add a global recording reference outside the component
+let isRecordingActive = false;
 
 export const LessonVideo = () => {
   const navigate = useNavigate();
@@ -16,52 +23,65 @@ export const LessonVideo = () => {
   const [countdown, setCountdown] = useState(null);
   const [recording, setRecording] = useState(false);
   const [cameraStarted, setCameraStarted] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(5);
+  const [recordingTime, setRecordingTime] = useState(3);
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const { isDarkMode } = useTheme();
   const [savedRecordings, setSavedRecordings] = useState([]);
+  // Add refs and state for MediaPipe
+  const handsRef = useRef(null);
+  const cameraRef = useRef(null);
+  const landmarkFramesRef = useRef([]);
+  const [handDetected, setHandDetected] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({
+    framesProcessed: 0,
+    landmarksDetected: 0,
+  });
 
   useEffect(() => {
-    document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
 
   useEffect(() => {
     const fetchLesson = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:8000/api/lessons/${lessonId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          `http://localhost:8000/api/lessons/${lessonId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
 
         if (!response.ok) {
-          throw new Error('Failed to fetch lesson');
+          throw new Error("Failed to fetch lesson");
         }
 
         const data = await response.json();
-        console.log('Fetched lesson data:', data);
-        
+        console.log("Fetched lesson data:", data);
+
         // Convert youtu.be URLs to embed URLs
         if (data.videos && data.videos.length > 0) {
-          data.videos = data.videos.map(url => {
-            if (url.includes('youtu.be/')) {
-              const videoId = url.split('youtu.be/')[1].split('?')[0];
+          data.videos = data.videos.map((url) => {
+            if (url.includes("youtu.be/")) {
+              const videoId = url.split("youtu.be/")[1].split("?")[0];
               return `https://www.youtube.com/embed/${videoId}`;
-            } else if (url.includes('youtube.com/watch?v=')) {
-              const videoId = url.split('v=')[1].split('&')[0];
+            } else if (url.includes("youtube.com/watch?v=")) {
+              const videoId = url.split("v=")[1].split("&")[0];
               return `https://www.youtube.com/embed/${videoId}`;
             }
             return url;
           });
         }
-        
+
         setLesson(data);
       } catch (err) {
-        console.error('Error fetching lesson:', err);
+        console.error("Error fetching lesson:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -73,7 +93,7 @@ export const LessonVideo = () => {
 
   const handleVideoEnd = () => {
     if (currentVideoIndex < lesson.videos.length - 1) {
-      setCurrentVideoIndex(prev => prev + 1);
+      setCurrentVideoIndex((prev) => prev + 1);
     } else {
       setIsVideoComplete(true);
     }
@@ -81,14 +101,14 @@ export const LessonVideo = () => {
 
   const goToNextVideo = () => {
     if (currentVideoIndex < lesson.videos.length - 1) {
-      setCurrentVideoIndex(prev => prev + 1);
+      setCurrentVideoIndex((prev) => prev + 1);
       setIsVideoComplete(false);
     }
   };
 
   const goToPreviousVideo = () => {
     if (currentVideoIndex > 0) {
-      setCurrentVideoIndex(prev => prev - 1);
+      setCurrentVideoIndex((prev) => prev - 1);
       setIsVideoComplete(false);
     }
   };
@@ -100,26 +120,155 @@ export const LessonVideo = () => {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: false 
+        audio: false,
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+
+        // Initialize MediaPipe Hands
+        if (!handsRef.current) {
+          handsRef.current = new Hands({
+            locateFile: (file) =>
+              `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+          });
+
+          handsRef.current.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.6, // Lower detection confidence for better capture
+            minTrackingConfidence: 0.5, // Lower tracking confidence
+          });
+
+          handsRef.current.onResults((results) => {
+            // Update hand detection status
+            const hasHand =
+              results.multiHandLandmarks &&
+              results.multiHandLandmarks.length > 0;
+            setHandDetected(hasHand);
+
+            // Update debug info
+            setDebugInfo((prev) => ({
+              framesProcessed: prev.framesProcessed + 1,
+              landmarksDetected: hasHand
+                ? prev.landmarksDetected + 1
+                : prev.landmarksDetected,
+            }));
+
+            // Store landmarks if hand is detected and we're recording
+            // Use both the component state and the global reference
+            if ((isRecordingActive || recording) && hasHand) {
+              const landmarks = results.multiHandLandmarks[0];
+
+              // MediaPipe Hands gives us 21 landmarks, each with x, y, z coordinates
+              // Ensure we extract exactly 42 values (21 landmarks × 3 coordinates)
+              const flat = [];
+
+              // Extract exactly 21 landmarks with x, y, z coordinates (total: 42 values)
+              for (let i = 0; i < 21 && i < landmarks.length; i++) {
+                // Add x, y coordinates (normalized from 0-1)
+                flat.push(landmarks[i].x);
+                flat.push(landmarks[i].y);
+                // We need 42 values total, so only add 21 values
+              }
+
+              // Ensure we have exactly 42 values
+              if (flat.length === 42) {
+                landmarkFramesRef.current.push(flat);
+                console.log(
+                  "Landmark captured:",
+                  flat.length,
+                  "isRecordingActive:",
+                  isRecordingActive
+                );
+              } else {
+                console.warn(
+                  `Invalid landmark count: ${flat.length}, expected 42`
+                );
+              }
+            }
+
+            // Draw landmarks on canvas if we have a canvas reference
+            if (canvasRef.current) {
+              const ctx = canvasRef.current.getContext("2d");
+              if (!ctx) return;
+
+              // Clear canvas
+              ctx.clearRect(
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height
+              );
+
+              // Draw hand landmarks
+              if (hasHand) {
+                // Make canvas same size as video
+                canvasRef.current.width = videoRef.current.videoWidth;
+                canvasRef.current.height = videoRef.current.videoHeight;
+
+                // Draw hand connections
+                drawConnectors(
+                  ctx,
+                  results.multiHandLandmarks[0],
+                  Hands.HAND_CONNECTIONS,
+                  { color: "#00FF00", lineWidth: 5 }
+                );
+
+                // Draw landmarks
+                drawLandmarks(ctx, results.multiHandLandmarks[0], {
+                  color: "#FF0000",
+                  lineWidth: 2,
+                  radius: 4,
+                });
+              }
+            }
+          });
+        }
+
+        // Start the camera
+        if (!cameraRef.current && videoRef.current) {
+          cameraRef.current = new Camera(videoRef.current, {
+            onFrame: async () => {
+              if (handsRef.current) {
+                await handsRef.current.send({ image: videoRef.current });
+              }
+            },
+            width: 640,
+            height: 480,
+          });
+
+          cameraRef.current.start();
+        }
+
+        setCameraStarted(true);
       }
-      setCameraStarted(true);
     } catch (err) {
       console.error("Error accessing webcam:", err);
-      alert("Unable to access camera. Please make sure you have granted camera permissions.");
+      alert(
+        "Unable to access camera. Please make sure you have granted camera permissions."
+      );
     }
   };
 
   const startRecording = () => {
+    // Update both the state and global reference
     setRecording(true);
+    isRecordingActive = true;
+
     setCountdown(3);
+    // Reset landmarks storage and debug info
+    landmarkFramesRef.current = [];
+    setDebugInfo({ framesProcessed: 0, landmarksDetected: 0 });
+
+    console.log(
+      "Start recording called, isRecordingActive:",
+      isRecordingActive
+    );
 
     const countdownInterval = setInterval(() => {
-      setCountdown(prev => {
+      setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(countdownInterval);
           beginRecording();
@@ -131,101 +280,13 @@ export const LessonVideo = () => {
   };
 
   const beginRecording = () => {
-    const stream = videoRef.current.srcObject;
-    const mediaRecorder = new MediaRecorder(stream);
-    const chunks = [];
+    // Reset landmark storage right at the point recording actually begins
+    console.log("Begin actual recording, clearing landmark frames");
+    landmarkFramesRef.current = [];
 
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) {
-        chunks.push(e.data);
-      }
-    };
-
-    mediaRecorder.onstop = async () => {
-      const blob = new Blob(chunks, { type: 'video/webm' });
-      const formData = new FormData();
-      
-      // Create a File object from the Blob
-      const videoFile = new File([blob], 'recording.webm', { type: 'video/webm' });
-      formData.append('video', videoFile);
-      formData.append('sign', lesson.answers[currentVideoIndex]);
-      formData.append('lessonId', lessonId);
-
-      // Debug logging
-      console.log('Video file size:', videoFile.size);
-      console.log('FormData contents:');
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-      }
-
-      try {
-        const token = localStorage.getItem('token');
-        
-        // First save the recording
-        console.log('Sending recording to backend...');
-        const saveResponse = await fetch('http://localhost:8000/api/save-recording', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-          credentials: 'include',
-        });
-
-        console.log('Save response status:', saveResponse.status);
-        if (!saveResponse.ok) {
-          const errorText = await saveResponse.text();
-          console.error('Save response error:', errorText);
-          throw new Error('Failed to save recording');
-        }
-
-        const saveData = await saveResponse.json();
-        console.log('Save response data:', saveData);
-
-        setSavedRecordings(prev => [...prev, {
-          url: `http://localhost:8000${saveData.filePath}`,
-          sign: lesson.answers[currentVideoIndex],
-          timestamp: new Date().toISOString()
-        }]);
-
-        // Then check if the sign is correct
-        const checkResponse = await fetch('http://localhost:8000/api/check-sign', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-          credentials: 'include',
-        });
-
-        if (!checkResponse.ok) {
-          throw new Error('Failed to check sign');
-        }
-
-        const checkData = await checkResponse.json();
-        setIsSignCorrect(checkData.isCorrect);
-
-        if (checkData.isCorrect) {
-          setTimeout(() => {
-            if (currentVideoIndex < lesson.videos.length - 1) {
-              setCurrentVideoIndex(prev => prev + 1);
-              setIsPracticeMode(false);
-              setIsSignCorrect(false);
-              setRecording(false);
-              setCameraStarted(false);
-            } else {
-              setIsVideoComplete(true);
-            }
-          }, 2000);
-        }
-      } catch (err) {
-        console.error('Error:', err);
-        alert('Failed to process recording. Please try again.');
-      }
-    };
-
-    mediaRecorderRef.current = mediaRecorder;
-    mediaRecorder.start();
+    // Set recording flags again to be extra sure
+    isRecordingActive = true;
+    setRecording(true);
 
     let timeLeft = recordingTime;
     setRecordingTime(timeLeft);
@@ -234,6 +295,15 @@ export const LessonVideo = () => {
       timeLeft -= 1;
       setRecordingTime(timeLeft);
 
+      // Log how many landmarks we've collected during recording
+      if (timeLeft % 1 === 0) {
+        console.log(
+          `Recording in progress: ${recordingTime - timeLeft}s, frames: ${
+            landmarkFramesRef.current.length
+          }`
+        );
+      }
+
       if (timeLeft <= 0) {
         clearInterval(recordingInterval);
         stopRecording();
@@ -241,12 +311,97 @@ export const LessonVideo = () => {
     }, 1000);
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
+  const stopRecording = async () => {
+    // Update both the state and global reference
     setRecording(false);
-    setRecordingTime(5);
+    isRecordingActive = false;
+
+    setRecordingTime(3);
+
+    console.log("Stop recording called, isRecordingActive:", isRecordingActive);
+
+    // Log landmark collection stats
+    console.log(
+      `Recording stats - Frames processed: ${debugInfo.framesProcessed}, Landmarks detected: ${debugInfo.landmarksDetected}`
+    );
+    console.log("Collected landmarks:", landmarkFramesRef.current.length);
+
+    // Filter out any frames that don't have exactly 42 values
+    const validFrames = landmarkFramesRef.current.filter(
+      (frame) => frame.length === 42
+    );
+    console.log(
+      `Valid frames with 42 values: ${validFrames.length} out of ${landmarkFramesRef.current.length}`
+    );
+
+    if (validFrames.length === 0) {
+      alert(
+        "No valid hand landmarks detected during recording. Please ensure your hand is visible in the camera view and try again."
+      );
+      return;
+    }
+
+    // If we have less than 5 frames of landmarks, warn the user but continue
+    if (validFrames.length < 5) {
+      console.warn("Very few landmarks detected - results may not be accurate");
+    }
+
+    // Prepare landmark data for submission
+    try {
+      const token = localStorage.getItem("token");
+
+      // Send landmarks directly to the backend
+      const response = await fetch("http://localhost:8000/api/classify", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          landmarks: validFrames, // Only send the valid frames
+          lesson_id: lessonId,
+          sign: lesson.answers[currentVideoIndex],
+        }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to analyze landmarks");
+      }
+
+      const data = await response.json();
+      console.log("Classification result:", data);
+
+      // Save a reference to the recording (you can modify this as needed)
+      setSavedRecordings((prev) => [
+        ...prev,
+        {
+          sign: lesson.answers[currentVideoIndex],
+          timestamp: new Date().toISOString(),
+          result: data.result,
+        },
+      ]);
+
+      // Check if the sign is correct
+      const isCorrect = data.result && data.result.isCorrect;
+      setIsSignCorrect(isCorrect);
+
+      if (isCorrect) {
+        setTimeout(() => {
+          if (currentVideoIndex < lesson.videos.length - 1) {
+            setCurrentVideoIndex((prev) => prev + 1);
+            setIsPracticeMode(false);
+            setIsSignCorrect(false);
+            setRecording(false);
+          } else {
+            setIsVideoComplete(true);
+          }
+        }, 2000);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Failed to process hand landmarks. Please try again.");
+    }
   };
 
   // Cleanup function
@@ -254,10 +409,72 @@ export const LessonVideo = () => {
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
+        tracks.forEach((track) => track.stop());
+      }
+
+      // Clean up MediaPipe Camera if it exists
+      if (cameraRef.current) {
+        cameraRef.current.stop();
       }
     };
   }, []);
+
+  // Add after the useEffect for isDarkMode
+  useEffect(() => {
+    // Add WebGL context loss handling
+    const handleContextLoss = () => {
+      console.warn("WebGL context lost - attempting to restart camera");
+      // Try to restart the camera to recover from context loss
+      if (cameraRef.current) {
+        cameraRef.current.stop();
+        cameraRef.current = null;
+      }
+
+      if (handsRef.current) {
+        handsRef.current = null;
+      }
+
+      // Force camera restart after a brief delay
+      setTimeout(() => {
+        if (cameraStarted) {
+          startCamera();
+        }
+      }, 1000);
+    };
+
+    // Listen for WebGL context loss
+    window.addEventListener("webglcontextlost", handleContextLoss);
+
+    return () => {
+      window.removeEventListener("webglcontextlost", handleContextLoss);
+    };
+  }, [cameraStarted]);
+
+  // Add a useEffect to sync the recording state with the global reference
+  useEffect(() => {
+    isRecordingActive = recording;
+    console.log("Recording state changed:", isRecordingActive);
+  }, [recording]);
+
+  // Add useEffect to ensure recording state is properly initialized
+  useEffect(() => {
+    // Reset recording state when component mounts
+    isRecordingActive = false;
+    return () => {
+      // Make sure recording is stopped when component unmounts
+      isRecordingActive = false;
+    };
+  }, []);
+
+  // Add a listener effect to log all state changes for debugging
+  useEffect(() => {
+    console.log(
+      "Component state - recording:",
+      recording,
+      "handDetected:",
+      handDetected
+    );
+  }, [recording, handDetected]);
 
   if (loading) {
     return (
@@ -281,12 +498,14 @@ export const LessonVideo = () => {
       <div className="lesson-header">
         <h2>{lesson.title}</h2>
         <div className="lesson-progress">
-          <span>Video {currentVideoIndex + 1} of {lesson.videos.length}</span>
+          <span>
+            Video {currentVideoIndex + 1} of {lesson.videos.length}
+          </span>
           <div className="progress-dots">
             {lesson.videos.map((_, index) => (
-              <span 
-                key={index} 
-                className={`dot ${index === currentVideoIndex ? 'active' : ''}`}
+              <span
+                key={index}
+                className={`dot ${index === currentVideoIndex ? "active" : ""}`}
               ></span>
             ))}
           </div>
@@ -313,7 +532,7 @@ export const LessonVideo = () => {
                       onEnded={handleVideoEnd}
                     ></iframe>
                     <div className="video-navigation">
-                      <button 
+                      <button
                         className="nav-button prev-button"
                         onClick={goToPreviousVideo}
                         disabled={currentVideoIndex === 0}
@@ -323,25 +542,26 @@ export const LessonVideo = () => {
                       <span className="current-sign">
                         {lesson.answers[currentVideoIndex]}
                       </span>
-                      <button 
+                      <button
                         className="nav-button next-button"
                         onClick={goToNextVideo}
-                        disabled={currentVideoIndex === lesson.videos.length - 1}
+                        disabled={
+                          currentVideoIndex === lesson.videos.length - 1
+                        }
                       >
                         Next
                       </button>
                     </div>
                   </div>
-                  <button 
-                    onClick={startPractice} 
-                    className="practice-button"
-                  >
+                  <button onClick={startPractice} className="practice-button">
                     <span className="practice-icon">🎯</span>
                     Practice Now
                   </button>
                 </>
               ) : (
-                <div className="no-video">No videos available for this lesson</div>
+                <div className="no-video">
+                  No videos available for this lesson
+                </div>
               )}
             </div>
           ) : (
@@ -354,7 +574,23 @@ export const LessonVideo = () => {
                   muted
                   className="webcam-video"
                 />
-                
+                <canvas
+                  ref={canvasRef}
+                  className="hand-canvas"
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    zIndex: 10,
+                  }}
+                />
+
+                {handDetected && (
+                  <div className="hand-detected-indicator">Hand Detected ✓</div>
+                )}
+
                 {countdown && (
                   <div className="countdown-overlay">
                     <span className="countdown-number">{countdown}</span>
@@ -366,6 +602,9 @@ export const LessonVideo = () => {
                     <div className="recording-indicator">
                       <span className="recording-dot"></span>
                       Recording: {recordingTime}s
+                      <div className="recording-debug">
+                        Landmarks: {landmarkFramesRef.current.length}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -389,7 +628,10 @@ export const LessonVideo = () => {
                   </button>
                 )}
                 {!isSignCorrect && (
-                  <button onClick={() => setIsPracticeMode(false)} className="back-btn">
+                  <button
+                    onClick={() => setIsPracticeMode(false)}
+                    className="back-btn"
+                  >
                     Back to Video
                   </button>
                 )}
@@ -397,18 +639,40 @@ export const LessonVideo = () => {
 
               {savedRecordings.length > 0 && (
                 <div className="saved-recordings">
-                  <h3>Your Recordings</h3>
+                  <h3>Your Attempts</h3>
                   <div className="recordings-list">
                     {savedRecordings.map((recording, index) => (
                       <div key={index} className="recording-item">
-                        <video 
-                          src={recording.url} 
-                          controls 
-                          className="recording-video"
-                        />
+                        <div className="recording-result">
+                          <div
+                            className={`result-indicator ${
+                              recording.result?.isCorrect
+                                ? "correct"
+                                : "incorrect"
+                            }`}
+                          >
+                            {recording.result?.isCorrect
+                              ? "✓ Correct"
+                              : "✗ Incorrect"}
+                          </div>
+                        </div>
                         <div className="recording-info">
                           <span>Sign: {recording.sign}</span>
-                          <span>Time: {new Date(recording.timestamp).toLocaleTimeString()}</span>
+                          <span>
+                            Detected:{" "}
+                            {recording.result?.predictedSign || "Unknown"}
+                          </span>
+                          <span>
+                            Confidence:{" "}
+                            {Math.round(
+                              (recording.result?.confidence || 0) * 100
+                            )}
+                            %
+                          </span>
+                          <span>
+                            Time:{" "}
+                            {new Date(recording.timestamp).toLocaleTimeString()}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -436,4 +700,4 @@ export const LessonVideo = () => {
       </div>
     </div>
   );
-}; 
+};
