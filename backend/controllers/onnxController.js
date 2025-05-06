@@ -8,17 +8,13 @@ exports.classify = async (req, res) => {
   try {
     const lessonID = req.body.lesson_id;
     const lesson = await Lesson.findOne({ lesson_id: lessonID });
-
+    const labels = lesson.model_labels;
     if (!lesson || !lesson.model_path) {
       return res.status(404).json({ message: "Lesson or model not found" });
     }
 
-    console.log(lesson.model_path);
     const modelPath = String(lesson.model_path);
-    console.log(modelPath);
     const fileName = String(path.basename(modelPath));
-    console.log(fileName);
-
     model = await ort.InferenceSession.create(modelPath);
     const landmarks = req.body.landmarks;
 
@@ -28,12 +24,18 @@ exports.classify = async (req, res) => {
 
     if (fileName.startsWith("STATIC")) {
       const avgFrame = averageFrames(landmarks);
-      const input = new ort.Tensor("float32", Float32Array.from(avgFrame), [
+      const norm = [];
+      for (let index = 0; index < avgFrame.length; index++) {
+        if (index % 2 === 0) {
+          norm[index] = avgFrame[index] - avgFrame[0];
+        } else {
+          norm[index] = avgFrame[index] - avgFrame[1];
+        }
+      }
+      const input = new ort.Tensor("float32", Float32Array.from(norm), [
         1,
-        avgFrame.length,
+        norm.length,
       ]);
-
-      console.log(input);
 
       let inputName = model.inputNames[0]; // get actual input name
       let result = await model.run({ [inputName]: input });
@@ -43,21 +45,23 @@ exports.classify = async (req, res) => {
 
       let max = 0;
       let maxIndex;
+      let sum = 0;
       for (let index = 0; index < scores.length; index++) {
+        sum = sum + scores[index];
         if (scores[index] > max) {
           max = scores[index];
           maxIndex = index;
         }
       }
 
-      //const maxIndex = scores.indexOf(Math.max(...scores));
-      console.log(output);
+      const confidence = (scores[maxIndex] / sum) * 100;
       console.log(maxIndex);
-      console.log(max);
+      console.log(labels[maxIndex]);
+      console.log(confidence, "%");
 
       res.status(200).json({
-        predicted_class: scores[maxIndex],
-        probabilities: Array.from(scores),
+        predictedSign: labels[maxIndex],
+        confidence: confidence,
       });
     } else if (fileName.startsWith("DYNAMIC")) {
       res.status(501).json({ message: "Dynamic model support coming soon" });
