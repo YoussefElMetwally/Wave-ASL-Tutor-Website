@@ -157,34 +157,50 @@ export const LessonVideo = () => {
             }));
 
             // Store landmarks if hand is detected and we're recording
-            // Use both the component state and the global reference
             if ((isRecordingActive || recording) && hasHand) {
               const landmarks = results.multiHandLandmarks[0];
 
-              // MediaPipe Hands gives us 21 landmarks, each with x, y, z coordinates
-              // Ensure we extract exactly 42 values (21 landmarks × 3 coordinates)
-              const flat = [];
+              const width = videoRef.current.videoWidth;
+              const height = videoRef.current.videoHeight;
 
-              // Extract exactly 21 landmarks with x, y, z coordinates (total: 42 values)
-              for (let i = 0; i < 21 && i < landmarks.length; i++) {
-                // Add x, y coordinates (normalized from 0-1)
-                flat.push(landmarks[i].x);
-                flat.push(landmarks[i].y);
-                // We need 42 values total, so only add 21 values
-              }
+              // Convert normalized landmarks to pixel space
+              const pixelLandmarks = landmarks.map((l) => [
+                Math.min(Math.floor(l.x * width), width - 1),
+                Math.min(Math.floor(l.y * height), height - 1),
+              ]);
 
-              // Ensure we have exactly 42 values
-              if (flat.length === 42) {
-                landmarkFramesRef.current.push(flat);
+              // Bounding box calculation (min/max coordinates)
+              const xs = pixelLandmarks.map((p) => p[0]);
+              const ys = pixelLandmarks.map((p) => p[1]);
+              const minX = Math.min(...xs);
+              const minY = Math.min(...ys);
+              const maxX = Math.max(...xs);
+              const maxY = Math.max(...ys);
+              const bbox = [minX, minY, maxX, maxY]; // [x, y, x+w, y+h]
+
+              // Normalize landmarks
+              const baseX = pixelLandmarks[0][0];
+              const baseY = pixelLandmarks[0][1];
+              const centered = pixelLandmarks.map(([x, y]) => [
+                x - baseX,
+                y - baseY,
+              ]);
+              const flat = centered.flat();
+
+              // Normalize using the max value from the flattened coordinates
+              const maxVal = Math.max(...flat.map(Math.abs));
+              const normalizedLandmarks =
+                maxVal !== 0 ? flat.map((v) => v / maxVal) : flat;
+
+              // Store normalized landmarks
+              if (normalizedLandmarks.length === 42) {
+                landmarkFramesRef.current.push(normalizedLandmarks);
                 console.log(
-                  "Landmark captured:",
-                  flat.length,
-                  "isRecordingActive:",
-                  isRecordingActive
+                  `Landmark captured: ${normalizedLandmarks.length}, isRecordingActive: ${isRecordingActive}`
                 );
               } else {
                 console.warn(
-                  `Invalid landmark count: ${flat.length}, expected 42`
+                  `Invalid landmark count: ${normalizedLandmarks.length}, expected 42`
                 );
               }
             }
@@ -263,8 +279,7 @@ export const LessonVideo = () => {
     setDebugInfo({ framesProcessed: 0, landmarksDetected: 0 });
 
     console.log(
-      "Start recording called, isRecordingActive:",
-      isRecordingActive
+      `Start recording called, isRecordingActive: ${isRecordingActive}`
     );
 
     const countdownInterval = setInterval(() => {
