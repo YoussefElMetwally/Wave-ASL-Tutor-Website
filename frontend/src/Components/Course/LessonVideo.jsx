@@ -38,6 +38,8 @@ export const LessonVideo = () => {
     framesProcessed: 0,
     landmarksDetected: 0,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
@@ -101,20 +103,38 @@ export const LessonVideo = () => {
 
   const goToNextVideo = () => {
     if (currentVideoIndex < lesson.videos.length - 1) {
+      if (isPracticeMode) {
+        // Clean up camera resources before switching
+        cleanupCamera();
+        setIsPracticeMode(false);
+        setCameraStarted(false);
+      }
       setCurrentVideoIndex((prev) => prev + 1);
       setIsVideoComplete(false);
+      setIsSignCorrect(false);
+      setHasAttempted(false);
     }
   };
 
   const goToPreviousVideo = () => {
     if (currentVideoIndex > 0) {
+      if (isPracticeMode) {
+        // Clean up camera resources before switching
+        cleanupCamera();
+        setIsPracticeMode(false);
+        setCameraStarted(false);
+      }
       setCurrentVideoIndex((prev) => prev - 1);
       setIsVideoComplete(false);
+      setIsSignCorrect(false);
+      setHasAttempted(false);
     }
   };
 
   const startPractice = () => {
     setIsPracticeMode(true);
+    setHasAttempted(false);
+    setIsSignCorrect(false);
     startCamera();
   };
 
@@ -224,6 +244,11 @@ export const LessonVideo = () => {
                 canvasRef.current.width = videoRef.current.videoWidth;
                 canvasRef.current.height = videoRef.current.videoHeight;
 
+                // Add these lines to mirror the canvas context for drawing
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.translate(-canvasRef.current.width, 0);
+
                 // Draw hand connections
                 drawConnectors(
                   ctx,
@@ -238,6 +263,9 @@ export const LessonVideo = () => {
                   lineWidth: 2,
                   radius: 4,
                 });
+
+                // Restore the context to its original state
+                ctx.restore();
               }
             }
           });
@@ -327,11 +355,13 @@ export const LessonVideo = () => {
   };
 
   const stopRecording = async () => {
-    // Update both the state and global reference
+    // Immediately update flags to prevent double requests
+    if (!isRecordingActive || isSubmitting) return; // Guard against duplicate calls
+    
     setRecording(false);
     isRecordingActive = false;
-
     setRecordingTime(3);
+    setIsSubmitting(true); // Set flag to indicate we're submitting
 
     console.log("Stop recording called, isRecordingActive:", isRecordingActive);
 
@@ -353,6 +383,7 @@ export const LessonVideo = () => {
       alert(
         "No valid hand landmarks detected during recording. Please ensure your hand is visible in the camera view and try again."
       );
+      setIsSubmitting(false); // Reset submitting flag
       return;
     }
 
@@ -387,50 +418,81 @@ export const LessonVideo = () => {
       const data = await response.json();
       console.log("Classification result:", data);
 
-      // Save a reference to the recording (you can modify this as needed)
+      // Save a reference to the recording with prediction data
       setSavedRecordings((prev) => [
         ...prev,
         {
           sign: lesson.answers[currentVideoIndex],
           timestamp: new Date().toISOString(),
-          result: data.result,
+          result: {
+            predictedSign: data.predictedSign,
+            confidence: data.confidence / 100, // Convert percentage to decimal
+            isCorrect: data.predictedSign === lesson.answers[currentVideoIndex]
+          },
         },
       ]);
 
       // Check if the sign is correct
-      const isCorrect = data.result && data.result.isCorrect;
+      const isCorrect = data.predictedSign === lesson.answers[currentVideoIndex];
       setIsSignCorrect(isCorrect);
 
       if (isCorrect) {
         setTimeout(() => {
           if (currentVideoIndex < lesson.videos.length - 1) {
+            // Clean up before moving to next video
+            cleanupCamera();
             setCurrentVideoIndex((prev) => prev + 1);
             setIsPracticeMode(false);
+            setCameraStarted(false);
             setIsSignCorrect(false);
             setRecording(false);
           } else {
             setIsVideoComplete(true);
+            cleanupCamera();
+            setIsPracticeMode(false);
+            setCameraStarted(false);
           }
         }, 2000);
       }
     } catch (err) {
       console.error("Error:", err);
       alert("Failed to process hand landmarks. Please try again.");
+    } finally {
+      setIsSubmitting(false); // Always reset the submitting flag
+    }
+
+    // Add this line after setting isSubmitting
+    setHasAttempted(true);
+  };
+
+  // First, create a function to properly clean up MediaPipe resources
+  const cleanupCamera = () => {
+    if (cameraRef.current) {
+      console.log("Stopping camera");
+      cameraRef.current.stop();
+      cameraRef.current = null;
+    }
+    
+    if (handsRef.current) {
+      console.log("Cleaning up MediaPipe hands");
+      handsRef.current.close();
+      handsRef.current = null;
+    }
+    
+    if (videoRef.current && videoRef.current.srcObject) {
+      console.log("Stopping video streams");
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
     }
   };
 
   // Cleanup function
   useEffect(() => {
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-
-      // Clean up MediaPipe Camera if it exists
-      if (cameraRef.current) {
-        cameraRef.current.stop();
-      }
+      // Clean up when component unmounts
+      cleanupCamera();
+      isRecordingActive = false;
     };
   }, []);
 
@@ -470,16 +532,6 @@ export const LessonVideo = () => {
     isRecordingActive = recording;
     console.log("Recording state changed:", isRecordingActive);
   }, [recording]);
-
-  // Add useEffect to ensure recording state is properly initialized
-  useEffect(() => {
-    // Reset recording state when component mounts
-    isRecordingActive = false;
-    return () => {
-      // Make sure recording is stopped when component unmounts
-      isRecordingActive = false;
-    };
-  }, []);
 
   // Add a listener effect to log all state changes for debugging
   useEffect(() => {
@@ -624,9 +676,17 @@ export const LessonVideo = () => {
                   </div>
                 )}
 
-                {isSignCorrect && (
+                {isSignCorrect && hasAttempted && (
                   <div className="feedback-overlay correct">
                     <span>✓ Correct!</span>
+                  </div>
+                )}
+
+                {!isSignCorrect && hasAttempted && recording === false && savedRecordings.length > 0 && (
+                  <div className="feedback-overlay incorrect">
+                    <span>✗ Incorrect! You signed: {
+                      savedRecordings[savedRecordings.length-1].result?.predictedSign || "Unknown"
+                    }</span>
                   </div>
                 )}
               </div>
@@ -642,9 +702,25 @@ export const LessonVideo = () => {
                     Start Recording
                   </button>
                 )}
+                {hasAttempted && !recording && (
+                  <button 
+                    onClick={() => {
+                      setHasAttempted(false);
+                      setIsSignCorrect(false);
+                    }} 
+                    className="clear-btn"
+                  >
+                    Clear Results
+                  </button>
+                )}
                 {!isSignCorrect && (
                   <button
-                    onClick={() => setIsPracticeMode(false)}
+                    onClick={() => {
+                      cleanupCamera();
+                      setIsPracticeMode(false);
+                      setCameraStarted(false);
+                      setHasAttempted(false);
+                    }}
                     className="back-btn"
                   >
                     Back to Video
@@ -672,20 +748,17 @@ export const LessonVideo = () => {
                           </div>
                         </div>
                         <div className="recording-info">
-                          <span>Sign: {recording.sign}</span>
+                          <span><strong>Expected:</strong> {recording.sign}</span>
+                          <span><strong>You signed:</strong> {recording.result?.predictedSign || "Unknown"}</span>
                           <span>
-                            Detected:{" "}
-                            {recording.result?.predictedSign || "Unknown"}
-                          </span>
-                          <span>
-                            Confidence:{" "}
+                            <strong>Confidence:</strong>{" "}
                             {Math.round(
                               (recording.result?.confidence || 0) * 100
                             )}
                             %
                           </span>
                           <span>
-                            Time:{" "}
+                            <strong>Time:</strong>{" "}
                             {new Date(recording.timestamp).toLocaleTimeString()}
                           </span>
                         </div>
