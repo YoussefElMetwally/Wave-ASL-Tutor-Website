@@ -13,7 +13,15 @@ exports.classify = async (req, res) => {
       return res.status(404).json({ message: "Lesson or model not found" });
     }
 
-    const modelPath = String(lesson.model_path);
+    const modelPath = path.join(
+      __dirname,
+      "..",
+      "AI",
+      String(lesson.model_path)
+    );
+
+    console.log(modelPath);
+
     const fileName = String(path.basename(modelPath));
     model = await ort.InferenceSession.create(modelPath);
     const landmarks = req.body.landmarks;

@@ -29,15 +29,6 @@ export const LessonVideo = () => {
   const mediaRecorderRef = useRef(null);
   const { isDarkMode } = useTheme();
   const [savedRecordings, setSavedRecordings] = useState([]);
-  // Add refs and state for MediaPipe
-  const handsRef = useRef(null);
-  const cameraRef = useRef(null);
-  const landmarkFramesRef = useRef([]);
-  const [handDetected, setHandDetected] = useState(false);
-  const [debugInfo, setDebugInfo] = useState({
-    framesProcessed: 0,
-    landmarksDetected: 0,
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAttempted, setHasAttempted] = useState(false);
 
