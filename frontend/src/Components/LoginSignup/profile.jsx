@@ -1,12 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from './ThemeContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './profile.css';
 import { Footer } from './Footer';
 
 export const ProfilePage = () => {
     const { isDarkMode, toggleTheme } = useTheme();
     const [firstName, setFirstName] = useState("User");
+    const navigate = useNavigate();
+
+    const handleSignOut = async () => {
+        try {
+          // Call the logout endpoint to clear the cookie
+          await fetch("http://localhost:8000/api/logout", {
+            method: "POST",
+            credentials: "include", // Important for cookie handling
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+          });
+    
+          // Clear the token from localStorage
+          localStorage.removeItem("token");
+    
+          // Navigate to login page
+          navigate("/", { replace: true });
+        } catch (error) {
+          console.error("Logout error:", error);
+          // Still remove token and redirect even if the request fails
+          localStorage.removeItem("token");
+          navigate("/", { replace: true });
+        }
+      };
     
     useEffect(() => {
         document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
@@ -68,12 +94,28 @@ export const ProfilePage = () => {
     return (
         <div className="profile-container">
             <nav className="nav-bar">
-                <Link to="/home" className="logo">Wave!</Link>
-                <div className="user-profile">
-                    <span className="xp">🌟 {user.xp} XP</span>
-                    <div className="streak">🔥 {user.streak}-day streak</div>
-                </div>
-            </nav>
+            <Link to="/home" className="logo">Wave!</Link>
+        <div className="user-profile">
+          <span className="xp">🌟 850 XP</span>
+          <div className="streak">🔥 7-day streak</div>
+        </div>
+        <div className="nav-right">
+          <Link to="/profile" className="profile-link">
+            <div className="profile-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+              </svg>
+            </div>
+          </Link>
+          <button onClick={handleSignOut} className="sign-out-button">
+            Sign out
+          </button>
+        </div>
+      </nav>
 
             <main className="profile-content">
                 <section className="profile-header">
