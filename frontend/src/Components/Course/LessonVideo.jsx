@@ -13,10 +13,11 @@ export const LessonVideo = () => {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
   const [isSignCorrect, setIsSignCorrect] = useState(false);
+  const [predictionResult, setPredictionResult] = useState(null);
   const [countdown, setCountdown] = useState(null);
   const [recording, setRecording] = useState(false);
   const [cameraStarted, setCameraStarted] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(5);
+  const [recordingTime, setRecordingTime] = useState(1);
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const { isDarkMode } = useTheme();
@@ -101,7 +102,11 @@ export const LessonVideo = () => {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true,
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: "user"  // This ensures the front camera is used on mobile devices
+        },
         audio: false 
       });
       if (videoRef.current) {
@@ -135,6 +140,23 @@ export const LessonVideo = () => {
     const mediaRecorder = new MediaRecorder(stream);
     const chunks = [];
 
+    // Capture a frame from the video when recording starts
+    const captureFrame = () => {
+      const canvas = document.createElement('canvas');
+      const video = videoRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert canvas to blob
+      return new Promise(resolve => {
+        canvas.toBlob(blob => {
+          resolve(blob);
+        }, 'image/jpeg', 0.95);
+      });
+    };
+
     mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) {
         chunks.push(e.data);
@@ -142,17 +164,24 @@ export const LessonVideo = () => {
     };
 
     mediaRecorder.onstop = async () => {
+      // Capture a frame from the video
+      const frameBlob = await captureFrame();
+      
       const blob = new Blob(chunks, { type: 'video/webm' });
       const formData = new FormData();
       
       // Create a File object from the Blob
       const videoFile = new File([blob], 'recording.webm', { type: 'video/webm' });
+      const frameFile = new File([frameBlob], 'frame.jpg', { type: 'image/jpeg' });
+      
       formData.append('video', videoFile);
+      formData.append('frame', frameFile);
       formData.append('sign', lesson.answers[currentVideoIndex]);
       formData.append('lessonId', lessonId);
 
       // Debug logging
       console.log('Video file size:', videoFile.size);
+      console.log('Frame file size:', frameFile.size);
       console.log('FormData contents:');
       for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
@@ -204,6 +233,11 @@ export const LessonVideo = () => {
 
         const checkData = await checkResponse.json();
         setIsSignCorrect(checkData.isCorrect);
+        setPredictionResult({
+          predicted: checkData.predictedSign,
+          expected: checkData.expectedSign,
+          confidence: Math.round(checkData.confidence * 100)
+        });
 
         if (checkData.isCorrect) {
           setTimeout(() => {
@@ -211,12 +245,13 @@ export const LessonVideo = () => {
               setCurrentVideoIndex(prev => prev + 1);
               setIsPracticeMode(false);
               setIsSignCorrect(false);
+              setPredictionResult(null);
               setRecording(false);
               setCameraStarted(false);
             } else {
               setIsVideoComplete(true);
             }
-          }, 2000);
+          }, 3000);
         }
       } catch (err) {
         console.error('Error:', err);
@@ -246,7 +281,7 @@ export const LessonVideo = () => {
       mediaRecorderRef.current.stop();
     }
     setRecording(false);
-    setRecordingTime(5);
+    setRecordingTime(1);
   };
 
   // Cleanup function
@@ -373,6 +408,22 @@ export const LessonVideo = () => {
                 {isSignCorrect && (
                   <div className="feedback-overlay correct">
                     <span>✓ Correct!</span>
+                    {predictionResult && (
+                      <div className="prediction-details">
+                        <p>Predicted: {predictionResult.predicted} ({predictionResult.confidence}% confidence)</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!isSignCorrect && predictionResult && (
+                  <div className="feedback-overlay incorrect">
+                    <span>✗ Incorrect</span>
+                    <div className="prediction-details">
+                      <p>Expected: {predictionResult.expected}</p>
+                      <p>Predicted: {predictionResult.predicted} ({predictionResult.confidence}% confidence)</p>
+                      <p>Try again!</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -394,27 +445,6 @@ export const LessonVideo = () => {
                   </button>
                 )}
               </div>
-
-              {savedRecordings.length > 0 && (
-                <div className="saved-recordings">
-                  <h3>Your Recordings</h3>
-                  <div className="recordings-list">
-                    {savedRecordings.map((recording, index) => (
-                      <div key={index} className="recording-item">
-                        <video 
-                          src={recording.url} 
-                          controls 
-                          className="recording-video"
-                        />
-                        <div className="recording-info">
-                          <span>Sign: {recording.sign}</span>
-                          <span>Time: {new Date(recording.timestamp).toLocaleTimeString()}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 

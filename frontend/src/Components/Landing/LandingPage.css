@@ -14,6 +14,7 @@
   height: 150px;
   margin-bottom: -2rem;
   object-fit: contain;
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .landing-content {

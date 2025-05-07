@@ -41,6 +41,7 @@
     padding: 1rem 2rem;
     background: var(--container-bg);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .logo {
@@ -60,6 +61,56 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.xp {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.streak {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profile-link {
+    color: var(--text-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.profile-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sign-out-button {
+    background: var(--gradient-danger);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.2s;
+    border-radius: 100px;
+}
+
+.sign-out-button:hover {
+    opacity: 0.9;
 }
 
 .profile-content {

@@ -416,6 +416,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scaleX(-1); /* Mirror effect to flip the camera horizontally */
 }
 
 .countdown-overlay {
@@ -464,6 +465,7 @@
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   background-color: rgba(0, 0, 0, 0.5);
@@ -473,10 +475,29 @@
   background-color: rgba(0, 255, 0, 0.3);
 }
 
+.feedback-overlay.incorrect {
+  background-color: rgba(255, 0, 0, 0.3);
+}
+
 .feedback-overlay span {
   font-size: 3rem;
   color: white;
   font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.prediction-details {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 1rem;
+  border-radius: 8px;
+  color: white;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.prediction-details p {
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
 }
 
 .practice-controls {
@@ -605,23 +626,42 @@
 
 /* Add CSS variables for dark mode */
 :root {
-  --background-color: #e0f4ff;
+  /* Light Theme Variables */
+  --primary-color: #00aaff;
+  --secondary-color: #0066cc;
+  --accent-color: #ff6b6b;
+  --text-color: #333;
+  --background-color: #f8f9fa;
   --background-secondary: #ffffff; /* Container color for light mode */
   --background-tertiary: #f5faff; /* Slightly blue-tinted white for icons */
-  --text-color: #1a1a1a;
-  --text-secondary: #6c757d;
-  --border-color: #cce4ff; /* Lighter blue border */
-  --accent-color: #1cb0f6;
+  --card-bg: #ffffff;
+  --progress-bg: #e9ecef;
+  --gradient-primary: linear-gradient(135deg, #00aaff, #0066cc);
+  --gradient-accent: linear-gradient(135deg, #ff6b6b, #ff4757);
+  --gradient-success: linear-gradient(135deg, #4CAF50, #45a049);
+  --gradient-warning: linear-gradient(135deg, #FFC107, #ffa000);
+  --gradient-danger: linear-gradient(135deg, #f44336, #d32f2f);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --border-radius: 8px;
+  --primary-hover: #0088cc;
+  --container-bg: #ffffff;
+  --border-color: #e0e0e0;
+  --button-text: #ffffff;
+  --course-image-bg: #f5f5f5;
+  --nav-bg: #ffffff;
 }
 
-[data-theme='dark'] {
-  --background-color: #2a3a4d;
-  --background-secondary: #1f2937; /* Darker blue-grey for containers in dark mode */
-  --background-tertiary: #374151; /* Slightly lighter for icons */
+[data-theme="dark"] {
+  /* Dark Theme Variables */
+  --background-color: #121212;
+  --container-bg: #1e1e1e;
+  --background-secondary: #1e1e1e; /* Darker blue-grey for containers in dark mode */
   --text-color: #ffffff;
-  --text-secondary: #b0b0b0;
-  --border-color: #374151;
-  --accent-color: #1cb0f6;
+  --border-color: #404040;
+  --progress-bg: #2d2d2d;
+  --course-image-bg: #2d2d2d;
+  --nav-bg: #1e1e1e;
+  --card-bg: #1e1e1e;
 }
 
 .practice-button:disabled {

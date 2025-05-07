@@ -186,7 +186,7 @@ const user = {
         </section>
 
         <section className="all-courses">
-          <h2>Your Courses</h2>
+          <h2>All Courses</h2>
           <div className="course-grid">
             {courses.map((course) => (
               <div key={course.course_id} className="course-card">
