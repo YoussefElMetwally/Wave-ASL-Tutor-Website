@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginSignup } from './Components/LoginSignup/LoginSignup';
 import { Home } from './Components/LoginSignup/home';
 import { ThemeProvider } from './Components/LoginSignup/ThemeContext';
+import { SoundProvider } from './Components/LoginSignup/SoundContext';
 import { CourseDetails } from './Components/Course/CourseDetails';
 import { LessonVideo } from './Components/Course/LessonVideo';
 import { Practice } from './Components/Course/Practice';
@@ -22,54 +23,56 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <PageTransition>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginSignup />} />
-            <Route 
-              path="/home" 
-              element={
-                <ProtectedRoute>
-                  <Home />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/course/:courseSlug" 
-              element={
-                <ProtectedRoute>
-                  <CourseDetails />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/course/:courseSlug/lesson/:lessonId" 
-              element={
-                <ProtectedRoute>
-                  <LessonVideo />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/course/:courseSlug/practice" 
-              element={
-                <ProtectedRoute>
-                  <Practice />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              } 
-            />
-          </Routes>
-        </PageTransition>
-      </BrowserRouter>
+      <SoundProvider>
+        <BrowserRouter>
+          <PageTransition>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginSignup />} />
+              <Route 
+                path="/home" 
+                element={
+                  <ProtectedRoute>
+                    <Home />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/course/:courseSlug" 
+                element={
+                  <ProtectedRoute>
+                    <CourseDetails />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/course/:courseSlug/lesson/:lessonId" 
+                element={
+                  <ProtectedRoute>
+                    <LessonVideo />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/course/:courseSlug/practice" 
+                element={
+                  <ProtectedRoute>
+                    <Practice />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                } 
+              />
+            </Routes>
+          </PageTransition>
+        </BrowserRouter>
+      </SoundProvider>
     </ThemeProvider>
   );
 }

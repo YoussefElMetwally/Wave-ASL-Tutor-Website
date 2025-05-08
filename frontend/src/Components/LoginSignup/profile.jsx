@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from './ThemeContext';
+import { useSound } from './SoundContext';
 import { Link, useNavigate } from 'react-router-dom';
 import './profile.css';
 import { Footer } from './Footer';
 
 export const ProfilePage = () => {
     const { isDarkMode, toggleTheme } = useTheme();
+    const { isSoundEnabled, toggleSound } = useSound();
     const [firstName, setFirstName] = useState("User");
     const navigate = useNavigate();
 
@@ -184,7 +186,10 @@ export const ProfilePage = () => {
                         </div>
                         <div className="setting-item">
                             <span>Sound effects</span>
-                            <button className="toggle-switch active">
+                            <button 
+                                className={`toggle-switch ${isSoundEnabled ? 'active' : ''}`}
+                                onClick={toggleSound}
+                            >
                                 <div className="toggle-knob"></div>
                             </button>
                         </div>

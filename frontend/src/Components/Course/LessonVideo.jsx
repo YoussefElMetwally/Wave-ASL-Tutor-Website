@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "../LoginSignup/ThemeContext";
+import { useSound } from "../LoginSignup/SoundContext";
 import "./Course.css";
 // Import MediaPipe Hands library and utilities
 import { Hands } from "@mediapipe/hands";
@@ -27,14 +28,56 @@ export const LessonVideo = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  // Add audio refs for sound effects
+  const correctSoundRef = useRef(null);
+  const incorrectSoundRef = useRef(null);
   const { isDarkMode } = useTheme();
+  const { isSoundEnabled } = useSound();
   const [savedRecordings, setSavedRecordings] = useState([]);
+  // Add refs and state for MediaPipe
+  const handsRef = useRef(null);
+  const cameraRef = useRef(null);
+  const landmarkFramesRef = useRef([]);
+  const [handDetected, setHandDetected] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({
+    framesProcessed: 0,
+    landmarksDetected: 0,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAttempted, setHasAttempted] = useState(false);
 
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
+
+  // Load sound effects
+  useEffect(() => {
+    // Preload audio files
+    if (correctSoundRef.current) {
+      correctSoundRef.current.load();
+    }
+    if (incorrectSoundRef.current) {
+      incorrectSoundRef.current.load();
+    }
+  }, []);
+
+  // Play sound effects function
+  const playSound = (isCorrect) => {
+    // Only play sounds if they're enabled in settings
+    if (!isSoundEnabled) return;
+    
+    if (isCorrect && correctSoundRef.current) {
+      correctSoundRef.current.currentTime = 0;
+      correctSoundRef.current.play().catch(error => {
+        console.error("Error playing correct sound:", error);
+      });
+    } else if (!isCorrect && incorrectSoundRef.current) {
+      incorrectSoundRef.current.currentTime = 0;
+      incorrectSoundRef.current.play().catch(error => {
+        console.error("Error playing incorrect sound:", error);
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchLesson = async () => {
@@ -426,6 +469,9 @@ export const LessonVideo = () => {
       // Check if the sign is correct
       const isCorrect = data.predictedSign === lesson.answers[currentVideoIndex];
       setIsSignCorrect(isCorrect);
+      
+      // Play sound effect based on result
+      playSound(isCorrect);
 
       if (isCorrect) {
         setTimeout(() => {
@@ -553,6 +599,14 @@ export const LessonVideo = () => {
 
   return (
     <div className="lesson-container">
+      {/* Audio elements for sound effects */}
+      <audio ref={correctSoundRef} preload="auto">
+        <source src="/src/Components/Assets/sounds/correct_sound.wav" type="audio/wav" />
+      </audio>
+      <audio ref={incorrectSoundRef} preload="auto">
+        <source src="/src/Components/Assets/sounds/incorrect_sound.wav" type="audio/wav" />
+      </audio>
+      
       <div className="lesson-header">
         <h2>{lesson.title}</h2>
         <div className="lesson-progress">
