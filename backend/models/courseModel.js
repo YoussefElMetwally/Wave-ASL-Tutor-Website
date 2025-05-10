@@ -8,6 +8,7 @@ const courseSchema = new mongoose.Schema({
   level: { type: String, default: "A1" },
   lessons: [{ type: mongoose.Schema.Types.String, ref: "lesson" }],
   tests: [{ type: mongoose.Schema.Types.String, ref: "test" }],
+  prereq: { type: mongoose.Schema.Types.String, ref: "course" },
 });
 
 courseSchema.pre("save", async function (next) {
