@@ -48,3 +48,18 @@ exports.incrementCompletedLessons = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+exports.getEnrollments = async (req, res) => {
+  try {
+    const userId = req.body.user_id;
+
+    const userEnrollments = await Enrollment.find({ user_id: userId });
+
+    res.status(200).json(userEnrollments);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while fetching enrolled courses." });
+  }
+};
