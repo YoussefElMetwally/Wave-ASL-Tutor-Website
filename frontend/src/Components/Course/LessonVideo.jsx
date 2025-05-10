@@ -45,6 +45,7 @@ export const LessonVideo = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAttempted, setHasAttempted] = useState(false);
+  const [completedSigns, setCompletedSigns] = useState([]);
 
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
@@ -474,6 +475,14 @@ export const LessonVideo = () => {
       playSound(isCorrect);
 
       if (isCorrect) {
+        // Add the current sign to completed signs if not already there
+        setCompletedSigns(prev => {
+          if (!prev.includes(currentVideoIndex)) {
+            return [...prev, currentVideoIndex];
+          }
+          return prev;
+        });
+        
         setTimeout(() => {
           if (currentVideoIndex < lesson.videos.length - 1) {
             // Clean up before moving to next video
@@ -617,7 +626,9 @@ export const LessonVideo = () => {
             {lesson.videos.map((_, index) => (
               <span
                 key={index}
-                className={`dot ${index === currentVideoIndex ? "active" : ""}`}
+                className={`dot ${index === currentVideoIndex ? "active" : ""} ${
+                  completedSigns.includes(index) ? "completed" : ""
+                }`}
               ></span>
             ))}
           </div>
@@ -658,7 +669,8 @@ export const LessonVideo = () => {
                         className="nav-button next-button"
                         onClick={goToNextVideo}
                         disabled={
-                          currentVideoIndex === lesson.videos.length - 1
+                          currentVideoIndex === lesson.videos.length - 1 ||
+                          !completedSigns.includes(currentVideoIndex)
                         }
                       >
                         Next
@@ -714,9 +726,6 @@ export const LessonVideo = () => {
                     <div className="recording-indicator">
                       <span className="recording-dot"></span>
                       Recording: {recordingTime}s
-                      <div className="recording-debug">
-                        Landmarks: {landmarkFramesRef.current.length}
-                      </div>
                     </div>
                   </div>
                 )}

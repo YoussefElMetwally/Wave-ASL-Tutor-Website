@@ -218,10 +218,16 @@
   height: 8px;
   border-radius: 50%;
   background-color: #e9ecef;
+  transition: background-color 0.3s ease;
 }
 
 .dot.active {
   background-color: var(--accent-color);
+}
+
+.dot.completed {
+  background-color: #28a745;
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
 }
 
 .content-container {
@@ -450,7 +456,7 @@
 .recording-overlay {
   position: absolute;
   top: 20px;
-  right: 20px;
+  left: 20px;
   background-color: rgba(0, 0, 0, 0.7);
   padding: 10px 20px;
   border-radius: 20px;
