@@ -31,6 +31,8 @@ export const LoginSignup = () => {
   const [message, setMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
+  const [isRequestingReset, setIsRequestingReset] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
@@ -40,8 +42,44 @@ export const LoginSignup = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleRequestReset = async () => {
+    if (!formData.email) {
+      setPopupMessage("Please enter your email address");
+      setShowPopup(true);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/api/request-password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setMessage("Password reset instructions have been sent to your email");
+        setTimeout(() => {
+          setIsTransitioning(true);
+          setTimeout(() => {
+            setIsRequestingReset(false);
+            setIsTransitioning(false);
+          }, 300);
+        }, 2000);
+      } else {
+        setPopupMessage(data.message || "Failed to request password reset");
+        setShowPopup(true);
+      }
+    } catch (error) {
+      console.error("Password reset request failed:", error);
+      setPopupMessage("An error occurred. Please try again.");
+      setShowPopup(true);
+    }
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
     const endpoint = action === "Login" 
       ? "http://localhost:8000/api/login" 
       : "http://localhost:8000/api/register";
@@ -82,8 +120,65 @@ export const LoginSignup = () => {
     }
   };
 
+  const handleResetClick = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setIsRequestingReset(true);
+      setIsTransitioning(false);
+    }, 300);
+  };
+
+  const handleBackToLogin = () => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setIsRequestingReset(false);
+      setIsTransitioning(false);
+    }, 300);
+  };
+
+  if (isRequestingReset) {
+    return (
+      <div className={`container ${isTransitioning ? 'slide-out' : 'slide-in'}`}>
+        {showPopup && (
+          <Popup 
+            message={popupMessage} 
+            onClose={() => setShowPopup(false)} 
+          />
+        )}
+        <div className='header'>
+          <div className='text'>Reset Password</div>
+          <div className='underline'></div>
+        </div>
+        <form onSubmit={(e) => { e.preventDefault(); handleRequestReset(); }} className="inputs">
+          <div className="input">
+            <img src={email_icon} alt="" />
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          {message && <div className="message">{message}</div>}
+          <div className="submit-container">
+            <button type="submit" className="submit" style={{width: 200}}>
+              Reset Password
+            </button>
+          </div>
+          <div className="forgot-password" style={{ textAlign: 'center', marginTop: '20px' }}>
+            <span onClick={handleBackToLogin} style={{ cursor: 'pointer' }}>
+              Back to Login
+            </span>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
   return (
-    <div className='container'>
+    <div className={`container ${isTransitioning ? 'slide-out' : 'slide-in'}`}>
       {showPopup && (
         <Popup 
           message={popupMessage} 
@@ -142,9 +237,11 @@ export const LoginSignup = () => {
                  value={formData.password} 
                  onChange={handleChange} />
         </div>
-        <div className="forgot-password">
-          Lost Password? <span>Click Here!</span>
-        </div>
+        {action === "Login" && (
+          <div className="forgot-password">
+            Lost Password? <span onClick={handleResetClick}>Click Here!</span>
+          </div>
+        )}
         {message && <div className="message">{message}</div>}
         <div className="submit-container">
           <button type="submit" className="submit">

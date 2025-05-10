@@ -185,7 +185,7 @@ export const ProfilePage = () => {
                             </button>
                         </div>
                         <div className="setting-item">
-                            <span>Sound effects</span>
+                            <span>Sound Effects</span>
                             <button 
                                 className={`toggle-switch ${isSoundEnabled ? 'active' : ''}`}
                                 onClick={toggleSound}

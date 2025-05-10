@@ -4,6 +4,7 @@ const User = require("../models/userModel");
 const Course = require("../models/courseModel");
 const Enrollment = require("../models/enrollmentModel");
 const { getIdFromCookie } = require("./authController");
+const { sendPasswordResetEmail } = require("../services/emailService");
 
 exports.userLogin = (req, res) => {
   var Email = req.body.email;
@@ -231,6 +232,70 @@ exports.getUserData = async (req, res) => {
     
   } catch (error) {
     console.error("Error fetching user data:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate a reset token that expires in 1 hour
+    const resetToken = jwt.sign(
+      { id: user.user_id },
+      "verySecretValue",
+      { expiresIn: "1h" }
+    );
+
+    try {
+      // Send reset email
+      await sendPasswordResetEmail(email, resetToken);
+      res.status(200).json({
+        message: "Password reset instructions have been sent to your email"
+      });
+    } catch (emailError) {
+      console.error("Failed to send reset email:", emailError);
+      res.status(500).json({
+        message: "Failed to send reset email. Please try again later."
+      });
+    }
+  } catch (error) {
+    console.error("Password reset request error:", error);
+    res.status(500).json({ 
+      message: "An error occurred while processing your request",
+      error: error.message 
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    // Verify the token
+    const decoded = jwt.verify(token, "verySecretValue");
+    const user = await User.findOne({ user_id: decoded.id });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+    console.error("Password reset error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };

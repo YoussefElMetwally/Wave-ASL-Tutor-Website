@@ -8,6 +8,8 @@ const {
   enroll,
   updateUserData,
   getUserData,
+  requestPasswordReset,
+  resetPassword,
 } = require("../controllers/userController");
 const {
   getCourses,
@@ -37,6 +39,8 @@ const {
 router.post("/api/logout", logout);
 router.post("/api/login", userLogin);
 router.post("/api/register", userRegister);
+router.post("/api/request-password-reset", requestPasswordReset);
+router.post("/api/reset-password", resetPassword);
 
 // User Routes
 router.post("/api/user/enroll", checkLogin, enroll);
