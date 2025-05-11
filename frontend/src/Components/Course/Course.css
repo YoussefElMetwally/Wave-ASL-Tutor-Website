@@ -585,6 +585,7 @@
 
 .practice-controls {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 1rem;
   margin-top: 2rem;
@@ -626,27 +627,21 @@
 
 .next-sign-btn {
   background: var(--gradient-success);
-  margin-left: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
 .back-to-course-btn {
   background: var(--gradient-primary);
-  margin-left: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
 .back-to-course-btn::before {
-  content: "←";
   font-size: 1.2rem;
 }
 
 .next-sign-btn::after {
-  content: "→";
   font-size: 1.2rem;
 }
 
@@ -727,13 +722,6 @@
 .practice-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-.practice-controls {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
 }
 
 .recording-indicator {
