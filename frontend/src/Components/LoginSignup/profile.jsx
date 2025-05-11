@@ -9,6 +9,7 @@ export const ProfilePage = () => {
     const { isDarkMode, toggleTheme } = useTheme();
     const { isSoundEnabled, toggleSound } = useSound();
     const [firstName, setFirstName] = useState("User");
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     const handleSignOut = async () => {
@@ -42,6 +43,7 @@ export const ProfilePage = () => {
     
     useEffect(() => {
         const fetchUserData = async () => {
+            setLoading(true);
             try {
                 // Check if we have a token
                 const token = localStorage.getItem("token");
@@ -72,11 +74,23 @@ export const ProfilePage = () => {
                 }
             } catch (error) {
                 console.error("Error fetching user data:", error);
+            } finally {
+                setLoading(false);
             }
+                
         };
         
         fetchUserData();
     }, []);
+
+    if (loading) {
+        return (
+          <div className="loading">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading</div>
+          </div>
+        );
+      }
 
     // Sample user data
     const user = {

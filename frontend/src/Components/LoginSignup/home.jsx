@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "./ThemeContext";
 import "./home.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Footer } from "./Footer";
 
 // Popup notification component
@@ -24,6 +24,7 @@ const Popup = ({ message, type, onClose }) => {
 export const Home = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const [courses, setCourses] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +40,19 @@ export const Home = () => {
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
+
+  useEffect(() => {
+    // Check if we have a notification message from navigation state
+    if (location.state?.notificationMessage) {
+      showNotification(
+        location.state.notificationMessage, 
+        location.state.notificationType || 'error'
+      );
+      
+      // Clear the state to prevent showing the notification again on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleSignOut = async () => {
     try {
@@ -145,7 +159,6 @@ export const Home = () => {
       }
 
       const data = await response.json();
-      console.log("Fetched enrollments:", data);
       setEnrollments(data);
       return data;
     } catch (err) {
@@ -156,34 +169,26 @@ export const Home = () => {
 
   // Function to determine course status based on enrollments
   const getCourseStatus = (courseId) => {
-    console.log(`Checking status for course ${courseId}, enrollments:`, enrollments);
-    
     if (!enrollments || enrollments.length === 0) {
-      console.log(`No enrollments found for course ${courseId}, returning "enroll"`);
       return "enroll";
     }
     
     // Find enrollment by matching course_id field
     const enrollment = enrollments.find(e => e.course_id === courseId);
-    console.log(`Found enrollment for course ${courseId}:`, enrollment);
     
     if (!enrollment) {
-      console.log(`No matching enrollment found for course ${courseId}, returning "enroll"`);
       return "enroll";
     }
     
     if (enrollment.status === "Completed") {
-      console.log(`Course ${courseId} is completed, returning "completed"`);
       return "completed";
     }
     
     // If enrolled but not completed
     if (enrollment.progress_percentage >= 0) {
-      console.log(`Course ${courseId} is in progress (${enrollment.progress_percentage}%), returning "continue"`);
       return "continue";
     }
     
-    console.log(`Course ${courseId} is enrolled but not started, returning "start"`);
     return "start"; // Enrolled but not started
   };
 
@@ -235,7 +240,6 @@ export const Home = () => {
             }
             
             const userData = await response.json();
-            console.log("User data:", userData);
             
             // Check if userData has direct first_name property or nested in a user object
             if (userData && userData.first_name) {
@@ -288,18 +292,10 @@ const user = {
       setLoading(true);
       try {
         // First fetch enrollments
-        console.log("Fetching enrollments...");
         const userEnrollments = await fetchEnrollments();
-        console.log("Enrollments loaded:", userEnrollments);
         
         // Then fetch courses
-        console.log("Fetching courses...");
         const coursesData = await fetchCourses();
-        console.log("Courses loaded:", coursesData);
-        
-        // Log the combined data
-        console.log("Combined data - Courses:", coursesData);
-        console.log("Combined data - Enrollments:", userEnrollments);
         
       } catch (err) {
         console.error("Error loading data:", err);
@@ -460,8 +456,6 @@ const user = {
             {courses.map((course) => {
               const status = getCourseStatus(course.course_id);
               const progress = getCourseProgress(course.course_id);
-              
-              console.log(`Rendering course ${course.title} (${course.course_id}) with status: ${status}, progress: ${progress}`);
               
               return (
                 <div key={course.course_id} className={`course-card ${status === "completed" ? "completed" : ""}`}>

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { checkLogin, logout } = require("../controllers/authController");
+const { checkLogin, logout, checkEnrollment, checkLessonAccess } = require("../controllers/authController");
 const {
   userLogin,
   userRegister,
@@ -54,13 +54,14 @@ router.post("/api/enrollment/increment", checkLogin, incrementCompletedLessons);
 
 // Course routes
 router.get("/api/courses", checkLogin, getCourses);
-router.get("/api/courses/:slug", checkLogin, getCourseBySlug);
+router.get("/api/courses/:slug", checkLogin, checkEnrollment, getCourseBySlug);
 router.get("/api/courses/:id", checkLogin, getCourseById);
 
 // Lesson routes
 router.get("/api/lessons", checkLogin, getLessons);
 router.get("/api/lessons/:id", checkLogin, getLessonById);
 router.get("/api/lessons/:id/questions", checkLogin, getLessonQuestions);
+router.get("/api/courses/:courseSlug/lessons/:id", checkLogin, checkLessonAccess, getLessonById);
 
 // Test routes
 router.get("/api/tests", checkLogin, getTests);

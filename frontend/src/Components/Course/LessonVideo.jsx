@@ -25,6 +25,8 @@ export const LessonVideo = () => {
   const [recording, setRecording] = useState(false);
   const [cameraStarted, setCameraStarted] = useState(false);
   const [recordingTime, setRecordingTime] = useState(3);
+  const [showNextButton, setShowNextButton] = useState(false);
+  const [showPracticeSuccess, setShowPracticeSuccess] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -38,6 +40,7 @@ export const LessonVideo = () => {
   const handsRef = useRef(null);
   const cameraRef = useRef(null);
   const landmarkFramesRef = useRef([]);
+  const recordingIntervalRef = useRef(null);
   const [handDetected, setHandDetected] = useState(false);
   const [debugInfo, setDebugInfo] = useState({
     framesProcessed: 0,
@@ -46,6 +49,12 @@ export const LessonVideo = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAttempted, setHasAttempted] = useState(false);
   const [completedSigns, setCompletedSigns] = useState([]);
+  const fetchedRef = useRef(false);
+  const lessonCompletedRef = useRef(false);
+  const [courseId, setCourseId] = useState(null);
+  // Add a state to track feedback display status
+  const [feedbackStatus, setFeedbackStatus] = useState(null); // 'correct', 'incorrect', or null
+  const [showLessonCompletedPopup, setShowLessonCompletedPopup] = useState(false);
 
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
@@ -81,26 +90,53 @@ export const LessonVideo = () => {
   };
 
   useEffect(() => {
+    // Prevent duplicate fetches in development mode (React StrictMode)
+    if (fetchedRef.current) return;
+    
     const fetchLesson = async () => {
       try {
+        fetchedRef.current = true;
         const token = localStorage.getItem("token");
-        const response = await fetch(
-          `http://localhost:8000/api/lessons/${lessonId}`,
-          {
+        // Try to access lesson with course enrollment check
+        const enrollmentCheckUrl = `http://localhost:8000/api/courses/${courseSlug}/lessons/${lessonId}`;
+        let response = await fetch(enrollmentCheckUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (response.status === 403) {
+          // User is not enrolled in this course
+          console.error('Access denied: Not enrolled in this course');
+          navigate('/home', { 
+            state: { 
+              notificationMessage: 'You need to enroll in this course before accessing lessons',
+              notificationType: 'error'
+            } 
+          });
+          return;
+        }
+
+        // If the new endpoint fails for reasons other than access control, 
+        // fall back to the original endpoint
+        if (!response.ok && response.status !== 403) {
+          response = await fetch(`http://localhost:8000/api/lessons/${lessonId}`, {
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
             credentials: "include",
-          }
-        );
+          });
+        }
 
         if (!response.ok) {
           throw new Error("Failed to fetch lesson");
         }
 
         const data = await response.json();
-        console.log("Fetched lesson data:", data);
+        // Remove console.log for less console spam
 
         // Convert youtu.be URLs to embed URLs
         if (data.videos && data.videos.length > 0) {
@@ -117,6 +153,20 @@ export const LessonVideo = () => {
         }
 
         setLesson(data);
+        
+        // Fetch the course ID based on the slug
+        const courseResponse = await fetch(`http://localhost:8000/api/courses/${courseSlug}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
+        if (courseResponse.ok) {
+          const courseData = await courseResponse.json();
+          setCourseId(courseData.course_id);
+        }
       } catch (err) {
         console.error("Error fetching lesson:", err);
         setError(err.message);
@@ -126,14 +176,64 @@ export const LessonVideo = () => {
     };
 
     fetchLesson();
-  }, [lessonId]);
+  }, [lessonId, courseSlug, navigate]);
+
+  // Check if all signs are completed to mark the lesson as finished
+  useEffect(() => {
+    const checkLessonCompletion = async () => {
+      // Only proceed if we have a lesson loaded, not already marked as completed, and have courseId
+      if (!lesson || lessonCompletedRef.current || !courseId) return;
+      
+      // Check if all signs (videos) are completed
+      if (completedSigns.length >= lesson.videos.length) {
+        lessonCompletedRef.current = true;
+        await markLessonAsCompleted();
+      }
+    };
+    
+    checkLessonCompletion();
+  }, [completedSigns, lesson, courseId]);
+
+  // Function to mark a lesson as completed and update course progress
+  const markLessonAsCompleted = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const userId = JSON.parse(atob(token.split('.')[1])).id;
+      
+      // Call the API to increment completed lessons
+      const response = await fetch("http://localhost:8000/api/enrollment/increment", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          course_id: courseId,
+          lesson_id: lessonId
+        }),
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Lesson marked as completed! Course progress updated:", data.progress);
+        
+        // Show a completion message
+        if (completedSigns.length === lesson.videos.length) {
+          alert("Congratulations! You've completed this lesson. Your progress has been updated.");
+        }
+      } else {
+        console.error("Failed to update lesson completion status");
+      }
+    } catch (error) {
+      console.error("Error marking lesson as completed:", error);
+    }
+  };
 
   const handleVideoEnd = () => {
-    if (currentVideoIndex < lesson.videos.length - 1) {
-      setCurrentVideoIndex((prev) => prev + 1);
-    } else {
-      setIsVideoComplete(true);
-    }
+    // Instead of automatically moving to the next video, show the next button
+    setShowNextButton(true);
   };
 
   const goToNextVideo = () => {
@@ -148,6 +248,7 @@ export const LessonVideo = () => {
       setIsVideoComplete(false);
       setIsSignCorrect(false);
       setHasAttempted(false);
+      setShowNextButton(false); // Reset the next button state
     }
   };
 
@@ -163,6 +264,7 @@ export const LessonVideo = () => {
       setIsVideoComplete(false);
       setIsSignCorrect(false);
       setHasAttempted(false);
+      setShowNextButton(false); // Reset the next button state
     }
   };
 
@@ -250,9 +352,6 @@ export const LessonVideo = () => {
               // Store normalized landmarks
               if (normalizedLandmarks.length === 42) {
                 landmarkFramesRef.current.push(normalizedLandmarks);
-                console.log(
-                  `Landmark captured: ${normalizedLandmarks.length}, isRecordingActive: ${isRecordingActive}`
-                );
               } else {
                 console.warn(
                   `Invalid landmark count: ${normalizedLandmarks.length}, expected 42`
@@ -332,18 +431,18 @@ export const LessonVideo = () => {
   };
 
   const startRecording = () => {
-    // Update both the state and global reference
+    // Reset recording state variables
     setRecording(true);
     isRecordingActive = true;
+    landmarkFramesRef.current = [];
+    setFeedbackStatus(null);
+    setHasAttempted(false);
+    setRecordingTime(3); // Reset recording time for next attempt
 
     setCountdown(3);
     // Reset landmarks storage and debug info
     landmarkFramesRef.current = [];
     setDebugInfo({ framesProcessed: 0, landmarksDetected: 0 });
-
-    console.log(
-      `Start recording called, isRecordingActive: ${isRecordingActive}`
-    );
 
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
@@ -359,31 +458,27 @@ export const LessonVideo = () => {
 
   const beginRecording = () => {
     // Reset landmark storage right at the point recording actually begins
-    console.log("Begin actual recording, clearing landmark frames");
     landmarkFramesRef.current = [];
 
     // Set recording flags again to be extra sure
     isRecordingActive = true;
     setRecording(true);
 
+    // Clear any existing interval
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+    }
+
     let timeLeft = recordingTime;
     setRecordingTime(timeLeft);
 
-    const recordingInterval = setInterval(() => {
+    recordingIntervalRef.current = setInterval(() => {
       timeLeft -= 1;
       setRecordingTime(timeLeft);
 
-      // Log how many landmarks we've collected during recording
-      if (timeLeft % 1 === 0) {
-        console.log(
-          `Recording in progress: ${recordingTime - timeLeft}s, frames: ${
-            landmarkFramesRef.current.length
-          }`
-        );
-      }
-
       if (timeLeft <= 0) {
-        clearInterval(recordingInterval);
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
         stopRecording();
       }
     }, 1000);
@@ -393,25 +488,23 @@ export const LessonVideo = () => {
     // Immediately update flags to prevent double requests
     if (!isRecordingActive || isSubmitting) return; // Guard against duplicate calls
     
+    // Clear any existing recording interval
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+    
     setRecording(false);
     isRecordingActive = false;
     setRecordingTime(3);
     setIsSubmitting(true); // Set flag to indicate we're submitting
-
-    console.log("Stop recording called, isRecordingActive:", isRecordingActive);
-
-    // Log landmark collection stats
-    console.log(
-      `Recording stats - Frames processed: ${debugInfo.framesProcessed}, Landmarks detected: ${debugInfo.landmarksDetected}`
-    );
-    console.log("Collected landmarks:", landmarkFramesRef.current.length);
+    
+    // Clear any existing feedback temporarily during submission
+    setFeedbackStatus(null);
 
     // Filter out any frames that don't have exactly 42 values
     const validFrames = landmarkFramesRef.current.filter(
       (frame) => frame.length === 42
-    );
-    console.log(
-      `Valid frames with 42 values: ${validFrames.length} out of ${landmarkFramesRef.current.length}`
     );
 
     if (validFrames.length === 0) {
@@ -419,6 +512,7 @@ export const LessonVideo = () => {
         "No valid hand landmarks detected during recording. Please ensure your hand is visible in the camera view and try again."
       );
       setIsSubmitting(false); // Reset submitting flag
+      setHasAttempted(true);
       return;
     }
 
@@ -451,9 +545,17 @@ export const LessonVideo = () => {
       }
 
       const data = await response.json();
-      console.log("Classification result:", data);
 
-      // Save a reference to the recording with prediction data
+      // Check if the sign is correct
+      const isCorrect = data.predictedSign === lesson.answers[currentVideoIndex];
+      
+      // Set the feedback status first before any other state updates
+      setFeedbackStatus(isCorrect ? 'correct' : 'incorrect');
+      
+      // Then update the sign correctness state
+      setIsSignCorrect(isCorrect);
+      
+      // Now add to saved recordings
       setSavedRecordings((prev) => [
         ...prev,
         {
@@ -462,14 +564,10 @@ export const LessonVideo = () => {
           result: {
             predictedSign: data.predictedSign,
             confidence: data.confidence / 100, // Convert percentage to decimal
-            isCorrect: data.predictedSign === lesson.answers[currentVideoIndex]
+            isCorrect: isCorrect
           },
         },
       ]);
-
-      // Check if the sign is correct
-      const isCorrect = data.predictedSign === lesson.answers[currentVideoIndex];
-      setIsSignCorrect(isCorrect);
       
       // Play sound effect based on result
       playSound(isCorrect);
@@ -478,55 +576,54 @@ export const LessonVideo = () => {
         // Add the current sign to completed signs if not already there
         setCompletedSigns(prev => {
           if (!prev.includes(currentVideoIndex)) {
-            return [...prev, currentVideoIndex];
+            const newCompletedSigns = [...prev, currentVideoIndex];
+            
+            // Check if all signs are completed after adding this one
+            if (newCompletedSigns.length === lesson.videos.length && !lessonCompletedRef.current) {
+              // Mark the lesson as completed asynchronously
+              markLessonAsCompleted();
+              lessonCompletedRef.current = true;
+            }
+            
+            return newCompletedSigns;
           }
           return prev;
         });
         
         setTimeout(() => {
-          if (currentVideoIndex < lesson.videos.length - 1) {
-            // Clean up before moving to next video
-            cleanupCamera();
-            setCurrentVideoIndex((prev) => prev + 1);
-            setIsPracticeMode(false);
-            setCameraStarted(false);
-            setIsSignCorrect(false);
-            setRecording(false);
-          } else {
-            setIsVideoComplete(true);
-            cleanupCamera();
-            setIsPracticeMode(false);
-            setCameraStarted(false);
-          }
+          // Just show success but keep the user on the camera page
+          // No need to set isSignCorrect again as it's already set
+          
+          // Show a notification that they've completed the sign successfully
+          setShowPracticeSuccess(true);
+          setTimeout(() => {
+            setShowPracticeSuccess(false);
+          }, 3000);
         }, 2000);
       }
     } catch (err) {
       console.error("Error:", err);
       alert("Failed to process hand landmarks. Please try again.");
+      setFeedbackStatus(null);
     } finally {
       setIsSubmitting(false); // Always reset the submitting flag
+      setHasAttempted(true); // Mark as attempted
     }
-
-    // Add this line after setting isSubmitting
-    setHasAttempted(true);
   };
 
   // First, create a function to properly clean up MediaPipe resources
   const cleanupCamera = () => {
     if (cameraRef.current) {
-      console.log("Stopping camera");
       cameraRef.current.stop();
       cameraRef.current = null;
     }
     
     if (handsRef.current) {
-      console.log("Cleaning up MediaPipe hands");
       handsRef.current.close();
       handsRef.current = null;
     }
     
     if (videoRef.current && videoRef.current.srcObject) {
-      console.log("Stopping video streams");
       const tracks = videoRef.current.srcObject.getTracks();
       tracks.forEach(track => track.stop());
       videoRef.current.srcObject = null;
@@ -539,6 +636,12 @@ export const LessonVideo = () => {
       // Clean up when component unmounts
       cleanupCamera();
       isRecordingActive = false;
+      
+      // Clear any recording interval
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
     };
   }, []);
 
@@ -576,18 +679,17 @@ export const LessonVideo = () => {
   // Add a useEffect to sync the recording state with the global reference
   useEffect(() => {
     isRecordingActive = recording;
-    console.log("Recording state changed:", isRecordingActive);
   }, [recording]);
 
-  // Add a listener effect to log all state changes for debugging
   useEffect(() => {
-    console.log(
-      "Component state - recording:",
-      recording,
-      "handDetected:",
-      handDetected
-    );
-  }, [recording, handDetected]);
+    // Show the completion popup when the user completes the final sign
+    if (completedSigns.length > 0 && 
+        lesson && 
+        completedSigns.includes(lesson.videos.length - 1) && 
+        currentVideoIndex === lesson.videos.length - 1) {
+      setShowLessonCompletedPopup(true);
+    }
+  }, [completedSigns, lesson, currentVideoIndex]);
 
   if (loading) {
     return (
@@ -616,6 +718,35 @@ export const LessonVideo = () => {
         <source src="/src/Components/Assets/sounds/incorrect_sound.wav" type="audio/wav" />
       </audio>
       
+      {/* Lesson Completed Popup */}
+      {showLessonCompletedPopup && (
+        <div className="lesson-completed-overlay">
+          <div className="lesson-completed-popup">
+            <div className="completion-icon">🎉</div>
+            <h3>Lesson Completed!</h3>
+            <p>Congratulations! You've completed all signs in this lesson.</p>
+            <div className="completion-buttons">
+              <button
+                onClick={() => {
+                  cleanupCamera();
+                  // Navigate to the course page
+                  navigate(`/course/${courseSlug}`);
+                }}
+                className="back-to-course-btn"
+              >
+                Back to Course
+              </button>
+              <button
+                onClick={() => setShowLessonCompletedPopup(false)}
+                className="close-popup-btn"
+              >
+                Continue Practicing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="lesson-header">
         <h2>{lesson.title}</h2>
         <div className="lesson-progress">
@@ -646,10 +777,10 @@ export const LessonVideo = () => {
                       key={currentVideoIndex}
                       width="100%"
                       height="500"
-                      src={lesson.videos[currentVideoIndex]}
+                      src={`${lesson.videos[currentVideoIndex]}?autoplay=0&rel=0&enablejsapi=1`}
                       title={`${lesson.title} - Video ${currentVideoIndex + 1}`}
                       frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="main-video"
                       onEnded={handleVideoEnd}
@@ -676,6 +807,26 @@ export const LessonVideo = () => {
                         Next
                       </button>
                     </div>
+                    
+                    {showNextButton && (
+                      <div className="next-sign-overlay">
+                        <div className="next-sign-content">
+                          <p>Ready to move to the next sign?</p>
+                          <button 
+                            className="next-sign-button"
+                            onClick={() => {
+                              if (currentVideoIndex < lesson.videos.length - 1) {
+                                goToNextVideo();
+                              } else {
+                                setIsVideoComplete(true);
+                              }
+                            }}
+                          >
+                            {currentVideoIndex < lesson.videos.length - 1 ? 'Next Sign' : 'Complete Lesson'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <button onClick={startPractice} className="practice-button">
                     <span className="practice-icon">🎯</span>
@@ -730,13 +881,13 @@ export const LessonVideo = () => {
                   </div>
                 )}
 
-                {isSignCorrect && hasAttempted && (
+                {feedbackStatus === 'correct' && hasAttempted && (
                   <div className="feedback-overlay correct">
                     <span>✓ Correct!</span>
                   </div>
                 )}
 
-                {!isSignCorrect && hasAttempted && recording === false && savedRecordings.length > 0 && (
+                {feedbackStatus === 'incorrect' && hasAttempted && recording === false && savedRecordings.length > 0 && !isSubmitting && (
                   <div className="feedback-overlay incorrect">
                     <span>✗ Incorrect! You signed: {
                       savedRecordings[savedRecordings.length-1].result?.predictedSign || "Unknown"
@@ -761,13 +912,17 @@ export const LessonVideo = () => {
                     onClick={() => {
                       setHasAttempted(false);
                       setIsSignCorrect(false);
+                      setFeedbackStatus(null);
+                      setRecordingTime(3); // Reset recording time
+                      landmarkFramesRef.current = []; // Clear stored landmarks
+                      setDebugInfo({ framesProcessed: 0, landmarksDetected: 0 }); // Reset debug info
                     }} 
                     className="clear-btn"
                   >
                     Clear Results
                   </button>
                 )}
-                {!isSignCorrect && (
+                {!recording && (
                   <button
                     onClick={() => {
                       cleanupCamera();
@@ -778,6 +933,21 @@ export const LessonVideo = () => {
                     className="back-btn"
                   >
                     Back to Video
+                  </button>
+                )}
+                {isSignCorrect && completedSigns.includes(currentVideoIndex) && currentVideoIndex < lesson.videos.length - 1 && (
+                  <button
+                    onClick={() => {
+                      cleanupCamera();
+                      setIsPracticeMode(false);
+                      setCameraStarted(false);
+                      setHasAttempted(false);
+                      setIsSignCorrect(false);
+                      goToNextVideo();
+                    }}
+                    className="next-sign-btn"
+                  >
+                    Next Sign
                   </button>
                 )}
               </div>

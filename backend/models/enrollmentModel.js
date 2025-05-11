@@ -12,6 +12,7 @@ const enrollmentSchema = new mongoose.Schema({
   completion_date: { type: Date },
   completed_lessons: { type: Number, default: 0 },
   completed_tests: { type: Number, default: 0 },
+  completedLessonsArray: { type: [String], default: [] },
   progress_percentage: { type: Number, default: 0 },
   status: {
     type: String,
@@ -25,10 +26,11 @@ enrollmentSchema.pre("save", async function (next) {
     .model("course")
     .findOne({ course_id: this.course_id });
   if (course) {
+    const total_lessons = (course.lessons?.length || 0);
     const total = (course.lessons?.length || 0) + (course.tests?.length || 0);
     const completed =
       (this.completed_lessons || 0) + (this.completed_tests || 0);
-    this.progress_percentage = total > 0 ? (completed / total) * 100 : 0;
+    this.progress_percentage = total_lessons > 0 ? (completed / total_lessons) * 100 : 0;
   }
   next();
 });

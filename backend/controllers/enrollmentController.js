@@ -5,6 +5,7 @@ exports.incrementCompletedLessons = async (req, res) => {
   try {
     const user_id = req.body.user_id;
     const course_id = req.body.course_id;
+    const lesson_id = req.body.lesson_id;
 
     // Step 1: Find enrollment
     const enrollment = await Enrollment.findOne({ user_id, course_id });
@@ -12,8 +13,20 @@ exports.incrementCompletedLessons = async (req, res) => {
       throw new Error("Enrollment not found");
     }
 
-    // Step 2: Increment completed lessons
-    enrollment.completed_lessons += 1;
+    // Initialize completedLessonsArray if it doesn't exist
+    if (!enrollment.completedLessonsArray) {
+      enrollment.completedLessonsArray = [];
+    }
+
+    // Check if this lesson has already been completed
+    const lessonAlreadyCompleted = enrollment.completedLessonsArray.includes(lesson_id);
+    
+    // Only increment and add to the array if the lesson hasn't been completed before
+    if (!lessonAlreadyCompleted) {
+      // Step 2: Increment completed lessons
+      enrollment.completed_lessons += 1;
+      enrollment.completedLessonsArray.push(lesson_id);
+    }
 
     // Step 3: Get course data
     const course = await Course.findOne({ course_id });
@@ -42,6 +55,7 @@ exports.incrementCompletedLessons = async (req, res) => {
     res.status(200).json({
       message: "Completed lessons updated successfully",
       progress: enrollment.progress_percentage,
+      lessonWasCounted: !lessonAlreadyCompleted
     });
   } catch (error) {
     console.error("Error updating completed lessons:", error.message);

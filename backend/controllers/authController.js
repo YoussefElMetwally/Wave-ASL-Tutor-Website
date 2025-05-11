@@ -29,11 +29,30 @@ exports.checkLogin = (req, res, next) => {
   }
 };
 
-exports.getIdFromCookie = (req, res) => {
+exports.getIdFromCookie = (req) => {
+  // Check if token is available in cookies
+  if (!req.cookies || !req.cookies.User) {
+    // If not in cookies, check if it's in the Authorization header
+    if (req.headers && req.headers.authorization) {
+      const token = req.headers.authorization.split(" ")[1];
+      try {
+        const decoded = jwt.verify(token, "verySecretValue");
+        return decoded.id;
+      } catch (error) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  // Extract token from cookies
   const token = req.cookies.User;
-  if (!token) return null;
-  const payload = jwt.decode(token);
-  return payload?.id || null;
+  try {
+    const decoded = jwt.verify(token, "verySecretValue");
+    return decoded.id;
+  } catch (error) {
+    return null;
+  }
 };
 
 exports.logout = (req, res) => {
@@ -103,5 +122,80 @@ exports.sendPasswordResetEmail = async (email, resetToken) => {
   } catch (error) {
     console.error("Error sending email:", error);
     throw error; // Propagate the error to be handled by the controller
+  }
+};
+
+// Middleware to check if a user is enrolled in a course
+exports.checkEnrollment = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const courseSlug = req.params.slug;
+    
+    // First, find the course by slug
+    const course = await require('../models/courseModel').findOne({
+      title: { $regex: new RegExp(courseSlug.replace(/-/g, " "), "i") },
+    });
+    
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    
+    // Check if user is enrolled in this course
+    const enrollment = await require('../models/enrollmentModel').findOne({
+      user_id: userId,
+      course_id: course.course_id
+    });
+    
+    if (!enrollment) {
+      return res.status(403).json({ 
+        message: "Access denied",
+        error: "You are not enrolled in this course"
+      });
+    }
+    
+    // User is enrolled, proceed to the next middleware
+    next();
+  } catch (error) {
+    console.error("Enrollment check error:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Middleware to check if a user is enrolled in a course for lesson access
+exports.checkLessonAccess = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const courseSlug = req.params.courseSlug;
+    
+    // First, find the course by slug
+    const course = await require('../models/courseModel').findOne({
+      title: { $regex: new RegExp(courseSlug.replace(/-/g, " "), "i") },
+    });
+    
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    
+    // Check if user is enrolled in this course
+    const enrollment = await require('../models/enrollmentModel').findOne({
+      user_id: userId,
+      course_id: course.course_id
+    });
+    
+    if (!enrollment) {
+      return res.status(403).json({ 
+        message: "Access denied",
+        error: "You are not enrolled in this course" 
+      });
+    }
+    
+    // Add course info to request for potential later use
+    req.course = course;
+    
+    // User is enrolled, proceed to the next middleware
+    next();
+  } catch (error) {
+    console.error("Lesson access check error:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
