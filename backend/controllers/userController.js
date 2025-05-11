@@ -145,12 +145,12 @@ exports.enroll = async (req, res) => {
       if (!prerequisite) {
         // Get the prerequisite course title
         const prereqCourse = await Course.findOne({ course_id: course.prereq });
-        return res
-          .status(404)
-          .json({ 
-            message: "Course Pre-Requisite Incomplete", 
-            prereqCourse: prereqCourse ? prereqCourse.title : "prerequisite course" 
-          });
+        return res.status(404).json({
+          message: "Course Pre-Requisite Incomplete",
+          prereqCourse: prereqCourse
+            ? prereqCourse.title
+            : "prerequisite course",
+        });
       }
     }
 
@@ -282,6 +282,30 @@ exports.requestPasswordReset = async (req, res) => {
     }
   } catch (error) {
     console.error("Password reset request error:", error);
+    res.status(500).json({
+      message: "An error occurred while processing your request",
+      error: error.message,
+    });
+  }
+};
+
+exports.setPfp = async (req, res) => {
+  try {
+    const userID = req.body.user_id;
+
+    // Fetch the user from the database
+    const user = await User.findOne({ user_id: userID });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.profile_picture = req.body.pfp;
+    await user.save();
+
+    res.status(200).json({ message: "Profile picture updated successfully" });
+  } catch (error) {
+    console.error("Profile Picture Update request error:", error);
     res.status(500).json({
       message: "An error occurred while processing your request",
       error: error.message,
