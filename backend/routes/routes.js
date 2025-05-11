@@ -1,7 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
-const { checkLogin, logout, checkEnrollment, checkLessonAccess } = require("../controllers/authController");
+const {
+  checkLogin,
+  logout,
+  checkEnrollment,
+  checkLessonAccess,
+} = require("../controllers/authController");
 const {
   userLogin,
   userRegister,
@@ -11,6 +16,7 @@ const {
   requestPasswordReset,
   resetPassword,
   getCurrentCourse,
+  setPfp,
 } = require("../controllers/userController");
 const {
   getCourses,
@@ -47,6 +53,7 @@ router.post("/api/user/enroll", checkLogin, enroll);
 router.put("/api/user/updateData", updateUserData);
 router.get("/api/user/profile", checkLogin, getUserData);
 router.get("api/user/getCurrentCourse", checkLogin, getCurrentCourse);
+router.put("/api/user/setPfp", checkLogin, setPfp);
 
 // Enrollement routes
 router.get("/api/enrollment/getEnrollments", checkLogin, getEnrollments);
@@ -61,7 +68,12 @@ router.get("/api/courses/:id", checkLogin, getCourseById);
 router.get("/api/lessons", checkLogin, getLessons);
 router.get("/api/lessons/:id", checkLogin, getLessonById);
 router.get("/api/lessons/:id/questions", checkLogin, getLessonQuestions);
-router.get("/api/courses/:courseSlug/lessons/:id", checkLogin, checkLessonAccess, getLessonById);
+router.get(
+  "/api/courses/:courseSlug/lessons/:id",
+  checkLogin,
+  checkLessonAccess,
+  getLessonById
+);
 
 // Test routes
 router.get("/api/tests", checkLogin, getTests);
