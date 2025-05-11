@@ -10,6 +10,7 @@ const {
   getUserData,
   requestPasswordReset,
   resetPassword,
+  getCurrentCourse,
 } = require("../controllers/userController");
 const {
   getCourses,
@@ -20,7 +21,6 @@ const {
   getLessonQuestions,
   getLessonById,
   getLessons,
-  saveRecording,
   createLesson,
 } = require("../controllers/lessonController");
 const {
@@ -32,8 +32,8 @@ const {
 const { classify } = require("../controllers/onnxController");
 const {
   incrementCompletedLessons,
+  getEnrollments,
 } = require("../controllers/enrollmentController");
-
 
 // User authentication routes
 router.post("/api/logout", logout);
@@ -46,6 +46,11 @@ router.post("/api/reset-password", resetPassword);
 router.post("/api/user/enroll", checkLogin, enroll);
 router.put("/api/user/updateData", updateUserData);
 router.get("/api/user/profile", checkLogin, getUserData);
+router.get("api/user/getCurrentCourse", checkLogin, getCurrentCourse);
+
+// Enrollement routes
+router.get("/api/enrollment/getEnrollments", checkLogin, getEnrollments);
+router.post("/api/enrollment/increment", checkLogin, incrementCompletedLessons);
 
 // Course routes
 router.get("/api/courses", checkLogin, getCourses);

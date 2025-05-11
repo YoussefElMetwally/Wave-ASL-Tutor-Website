@@ -4,13 +4,36 @@ import "./home.css";
 import { Link, useNavigate } from "react-router-dom";
 import { Footer } from "./Footer";
 
+// Popup notification component
+const Popup = ({ message, type, onClose }) => {
+  const isSuccess = type === "success";
+  
+  return (
+    <div className="popup-overlay">
+      <div className={`popup-content ${isSuccess ? 'success' : 'error'}`}>
+        <h3>{isSuccess ? "Success" : "Error"}</h3>
+        <p>{message}</p>
+        <button onClick={onClose} className={isSuccess ? "success-btn" : "error-btn"}>
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const Home = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [firstName, setFirstName] = useState("User");
+  const [enrollingCourseId, setEnrollingCourseId] = useState(null);
+  // Add state for popup notifications
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState("error"); // "error" or "success"
 
 
   useEffect(() => {
@@ -39,6 +62,154 @@ export const Home = () => {
       // Still remove token and redirect even if the request fails
       localStorage.removeItem("token");
       navigate("/", { replace: true });
+    }
+  };
+
+  // Helper function to show notifications
+  const showNotification = (message, type = "error") => {
+    setPopupMessage(message);
+    setPopupType(type);
+    setShowPopup(true);
+  };
+
+  const handleEnroll = async (courseId) => {
+    try {
+      // Set enrolling state for this specific course
+      setEnrollingCourseId(courseId);
+      
+      const token = localStorage.getItem("token");
+      console.log("Enrolling in course:", courseId);
+      
+      const response = await fetch("http://localhost:8000/api/user/enroll", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        // Match exactly what the backend expects
+        body: JSON.stringify({ 
+          course_id: courseId 
+        }),
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle specific error cases
+        if (response.status === 404) {
+          if (data.message === "Course Pre-Requisite Incomplete") {
+            showNotification(`You need to complete "${data.prereqCourse}" first`);
+          } else {
+            showNotification("Course or user not found");
+          }
+        } else if (response.status === 400) {
+          showNotification("You are already enrolled in this course");
+          // Navigate to the course anyway if already enrolled
+          navigate(`/course/${courses.find(c => c.course_id === courseId).title.toLowerCase().replace(/\s+/g, '-')}`);
+        } else {
+          showNotification("Failed to enroll in course");
+        }
+        return;
+      }
+
+      // Successful enrollment
+      showNotification("Successfully enrolled in course!", "success");
+      // Refresh the courses list and enrollments
+      fetchEnrollments();
+      fetchCourses();
+    } catch (error) {
+      console.error("Enrollment error:", error);
+      showNotification("Failed to enroll in course");
+    } finally {
+      // Clear enrolling state
+      setEnrollingCourseId(null);
+    }
+  };
+
+  // Function to fetch user enrollments
+  const fetchEnrollments = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8000/api/enrollment/getEnrollments", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Fetched enrollments:", data);
+      setEnrollments(data);
+      return data;
+    } catch (err) {
+      console.error("Error fetching enrollments:", err);
+      return [];
+    }
+  };
+
+  // Function to determine course status based on enrollments
+  const getCourseStatus = (courseId) => {
+    console.log(`Checking status for course ${courseId}, enrollments:`, enrollments);
+    
+    if (!enrollments || enrollments.length === 0) {
+      console.log(`No enrollments found for course ${courseId}, returning "enroll"`);
+      return "enroll";
+    }
+    
+    // Find enrollment by matching course_id field
+    const enrollment = enrollments.find(e => e.course_id === courseId);
+    console.log(`Found enrollment for course ${courseId}:`, enrollment);
+    
+    if (!enrollment) {
+      console.log(`No matching enrollment found for course ${courseId}, returning "enroll"`);
+      return "enroll";
+    }
+    
+    if (enrollment.status === "Completed") {
+      console.log(`Course ${courseId} is completed, returning "completed"`);
+      return "completed";
+    }
+    
+    // If enrolled but not completed
+    if (enrollment.progress_percentage >= 0) {
+      console.log(`Course ${courseId} is in progress (${enrollment.progress_percentage}%), returning "continue"`);
+      return "continue";
+    }
+    
+    console.log(`Course ${courseId} is enrolled but not started, returning "start"`);
+    return "start"; // Enrolled but not started
+  };
+
+  // Function to get course progress from enrollments
+  const getCourseProgress = (courseId) => {
+    if (!enrollments || enrollments.length === 0) return 0;
+    
+    // Find enrollment by matching course_id field
+    const enrollment = enrollments.find(e => e.course_id === courseId);
+    return enrollment ? enrollment.progress_percentage || 0 : 0;
+  };
+
+  // Function to get button text based on course status
+  const getButtonText = (status, isEnrolling) => {
+    if (isEnrolling) return "Enrolling...";
+    
+    switch(status) {
+      case "completed":
+        return "Review";
+      case "continue":
+        return "Continue";
+      case "start":
+        return "Start";
+      case "enroll":
+      default:
+        return "Enroll";
     }
   };
 
@@ -79,38 +250,66 @@ export const Home = () => {
     
     fetchUserData();
 }, []);
+
 const user = {
   name: firstName,
 }
 
+  // Function to fetch courses
+  const fetchCourses = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8000/api/courses", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setCourses(data);
+      return data;
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setError(err.message);
+      return [];
+    }
+  };
+
+  // Combined function to load both courses and enrollments
   useEffect(() => {
-    const fetchCourses = async () => {
+    const loadData = async () => {
+      setLoading(true);
       try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:8000/api/courses", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setCourses(data);
+        // First fetch enrollments
+        console.log("Fetching enrollments...");
+        const userEnrollments = await fetchEnrollments();
+        console.log("Enrollments loaded:", userEnrollments);
+        
+        // Then fetch courses
+        console.log("Fetching courses...");
+        const coursesData = await fetchCourses();
+        console.log("Courses loaded:", coursesData);
+        
+        // Log the combined data
+        console.log("Combined data - Courses:", coursesData);
+        console.log("Combined data - Enrollments:", userEnrollments);
+        
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error("Error loading data:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCourses();
+    loadData();
   }, []);
 
   if (loading) {
@@ -125,6 +324,46 @@ const user = {
   if (error) {
     return <div className="error">Error: {error}</div>;
   }
+
+  // Get courses that are in progress or enrolled but not completed
+  const getEnrolledCourses = () => {
+    if (!courses || courses.length === 0) return [];
+    
+    // Get all courses that are enrolled (continue or start status)
+    return courses.filter(course => {
+      const status = getCourseStatus(course.course_id);
+      return status === "continue" || status === "start";
+    }).sort((a, b) => {
+      // Sort by progress (highest first)
+      const progressA = getCourseProgress(a.course_id);
+      const progressB = getCourseProgress(b.course_id);
+      return progressB - progressA;
+    });
+  };
+
+  // Get the highlighted course (for backward compatibility)
+  const getHighlightedCourse = () => {
+    if (!courses || courses.length === 0) return null;
+    
+    // First try to find a course in progress
+    const inProgressCourse = courses.find(course => {
+      const status = getCourseStatus(course.course_id);
+      return status === "continue";
+    });
+    
+    if (inProgressCourse) return inProgressCourse;
+    
+    // If no in-progress course, return the first non-completed course
+    const nextCourse = courses.find(course => {
+      const status = getCourseStatus(course.course_id);
+      return status !== "completed";
+    });
+    
+    return nextCourse || courses[0];
+  };
+
+  const enrolledCourses = getEnrolledCourses();
+  const highlightedCourse = getHighlightedCourse();
 
   return (
     <div>
@@ -165,22 +404,52 @@ const user = {
 
         <section className="current-course">
           <h2>Continue Learning</h2>
-          {courses.length > 0 && (
-            <div className="course-card highlighted">
-              <div
-                className="course-image"
-                style={{ backgroundColor: 'var(--course-image-bg)' }}
-              >
-                <span className="hand-emoji">👋</span>
-              </div>
-              <div className="course-details">
-                <h3>{courses[0].title}</h3>
-                <div className="progress-container">
-                  <div className="progress-bar" style={{ width: "75%" }} />
-                </div>
-                <p>Start your learning journey</p>
-                <button className="continue-button">Continue</button>
-              </div>
+          {enrolledCourses.length > 0 ? (
+            <div className="enrolled-courses">
+              {enrolledCourses.map(course => {
+                const status = getCourseStatus(course.course_id);
+                const progress = getCourseProgress(course.course_id);
+                
+                return (
+                  <div key={course.course_id} className="course-card highlighted">
+                    <div
+                      className="course-image"
+                      style={{ backgroundColor: 'var(--course-image-bg)' }}
+                    >
+                      <span className="hand-emoji">👋</span>
+                    </div>
+                    <div className="course-details">
+                      <h3>{course.title}</h3>
+                      <div className="progress-container">
+                        <div 
+                          className="progress-bar" 
+                          style={{ width: `${progress}%` }} 
+                        />
+                      </div>
+                      <div className="course-progress-info">
+                        <p>
+                          {status === "continue" 
+                            ? `${Math.round(progress)}% complete` 
+                            : "Ready to start"}
+                        </p>
+                        <button 
+                          className="continue-button"
+                          onClick={() => {
+                            navigate(`/course/${course.title.toLowerCase().replace(/\s+/g, '-')}`);
+                          }}
+                          disabled={enrollingCourseId !== null}
+                        >
+                          {status === "continue" ? "Continue" : "Start"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="no-enrolled-courses">
+              <p>You haven't enrolled in any courses yet. Browse the courses below to get started!</p>
             </div>
           )}
         </section>
@@ -188,42 +457,65 @@ const user = {
         <section className="all-courses">
           <h2>All Courses</h2>
           <div className="course-grid">
-            {courses.map((course) => (
-              <div key={course.course_id} className="course-card">
-                <div className="course-header">
-                  <span className="level-badge"></span>
-                </div>
-                <div
-                  className="course-image"
-                  style={{ backgroundColor: 'var(--course-image-bg)' }}
-                >
-                  <span className="hand-emoji">✋</span>
-                </div>
-                <div className="course-content">
-                  <h3>{course.title}</h3>
-                  <div className="progress-container">
-                    <div
-                      className="progress-bar"
-                      style={{ width: `${course.progress || 0}%` }}
-                    />
+            {courses.map((course) => {
+              const status = getCourseStatus(course.course_id);
+              const progress = getCourseProgress(course.course_id);
+              
+              console.log(`Rendering course ${course.title} (${course.course_id}) with status: ${status}, progress: ${progress}`);
+              
+              return (
+                <div key={course.course_id} className={`course-card ${status === "completed" ? "completed" : ""}`}>
+                  <div className="course-header">
+                    <span className="level-badge"></span>
+                    {status === "completed" && <span className="completed-badge">Completed</span>}
                   </div>
-                  <div className="course-footer">
-                    <span>{course.lessons?.length || 0} lessons</span>
-                    <button
-                      onClick={() => navigate(`/course/${course.title.toLowerCase().replace(/\s+/g, '-')}`)}
-                      className="start-button"
-                    >
-                      {(course.progress || 0) > 0 ? "Continue" : "Start"}
-                    </button>
+                  <div
+                    className="course-image"
+                    style={{ backgroundColor: 'var(--course-image-bg)' }}
+                  >
+                    <span className="hand-emoji">✋</span>
+                  </div>
+                  <div className="course-content">
+                    <h3>{course.title}</h3>
+                    <div className="progress-container">
+                      <div
+                        className="progress-bar"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <div className="course-footer">
+                      <span>{course.lessons?.length || 0} lessons</span>
+                      <button
+                        onClick={() => {
+                          if (status === "enroll") {
+                            handleEnroll(course.course_id);
+                          } else {
+                            navigate(`/course/${course.title.toLowerCase().replace(/\s+/g, '-')}`);
+                          }
+                        }}
+                        className={`start-button ${status}`}
+                        disabled={enrollingCourseId !== null}
+                      >
+                        {getButtonText(status, enrollingCourseId === course.course_id)}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </main>
 
       <Footer />
+
+      {showPopup && (
+        <Popup
+          message={popupMessage}
+          type={popupType}
+          onClose={() => setShowPopup(false)}
+        />
+      )}
     </div>
   );
 };

@@ -66,7 +66,6 @@ body {
   align-items: center;
   padding: 1rem 2rem;
   background-color: var(--background-secondary);
-  border-bottom: 1px solid var(--border-color);
 }
 
 .logo {
@@ -426,4 +425,222 @@ body, .home-container {
   width: 100%;
   height: 4px;
   background: var(--gradient-primary);
+}
+.course-card.completed {
+  border: 2px solid #4CAF50;
+}
+
+.completed-badge {
+  background-color: #4CAF50;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+.start-button.completed {
+  background-color: #8BC34A;
+}
+
+.start-button.continue {
+  background-color: #2196F3;
+}
+
+.start-button.start {
+  background-color: #FF9800;
+}
+
+/* Popup Notification Styles */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.popup-content {
+  background-color: var(--container-bg);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  transform: scale(0.8);
+  animation: scaleIn 0.3s ease forwards;
+  border-top: 5px solid #ff4444;
+}
+
+.popup-content.success {
+  border-top: 5px solid #4CAF50;
+}
+
+.popup-content.error {
+  border-top: 5px solid #ff4444;
+  background-color: var(--container-bg);
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.popup-content h3 {
+  margin-bottom: 15px;
+  font-size: 22px;
+  animation: slideDown 0.3s ease forwards;
+}
+
+.popup-content.success h3 {
+  color: #4CAF50;
+}
+
+.popup-content.error h3 {
+  color: #ff4444;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.popup-content p {
+  color: var(--text-color);
+  margin-bottom: 20px;
+  font-size: 16px;
+  animation: slideUp 0.3s ease forwards;
+  animation-delay: 0.1s;
+  opacity: 0;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.popup-content button {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  animation: fadeIn 0.3s ease forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.popup-content button.success-btn {
+  background: var(--gradient-success);
+}
+
+.popup-content button.error-btn {
+  background: var(--gradient-danger);
+}
+
+.popup-content button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Enrolled Courses Section */
+.enrolled-courses {
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.course-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.course-progress-info p {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* Smaller continue button for enrolled courses */
+.course-progress-info .continue-button {
+  padding: 1rem 1.5rem;
+  border-radius: 600px;
+  font-size: 0.85rem;
+  min-width: 90px;
+  margin-top: -25px; /* Move the button slightly up */
+}
+
+.no-enrolled-courses {
+  background-color: var(--container-bg);
+  border-radius: 15px;
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.no-enrolled-courses p {
+  font-size: 1.1rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+/* Make highlighted course cards more prominent */
+.course-card.highlighted {
+  border-left: 4px solid var(--primary-color);
+  transform: translateY(-5px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.course-card.highlighted:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive design for enrolled courses */
+@media (max-width: 768px) {
+  .enrolled-courses {
+    grid-template-columns: 1fr;
+  }
 }
