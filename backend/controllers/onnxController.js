@@ -26,23 +26,17 @@ exports.classify = async (req, res) => {
     model = await ort.InferenceSession.create(modelPath);
     const landmarks = req.body.landmarks;
 
+    console.log("Raw: ", landmarks);
+
     if (!landmarks || !Array.isArray(landmarks)) {
       return res.status(400).json({ message: "Missing or invalid landmarks" });
     }
 
     if (fileName.startsWith("STATIC")) {
       const avgFrame = averageFrames(landmarks);
-      const norm = [];
-      for (let index = 0; index < avgFrame.length; index++) {
-        if (index % 2 === 0) {
-          norm[index] = avgFrame[index] - avgFrame[0];
-        } else {
-          norm[index] = avgFrame[index] - avgFrame[1];
-        }
-      }
-      const input = new ort.Tensor("float32", Float32Array.from(norm), [
+      const input = new ort.Tensor("float32", Float32Array.from(avgFrame), [
         1,
-        norm.length,
+        avgFrame.length,
       ]);
 
       let inputName = model.inputNames[0]; // get actual input name
