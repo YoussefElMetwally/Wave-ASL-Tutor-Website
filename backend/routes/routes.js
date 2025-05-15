@@ -53,7 +53,7 @@ router.post("/api/user/enroll", checkLogin, enroll);
 router.put("/api/user/updateData", updateUserData);
 router.get("/api/user/profile", checkLogin, getUserData);
 router.get("api/user/getCurrentCourse", checkLogin, getCurrentCourse);
-router.put("/api/user/setPfp", checkLogin, setPfp);
+router.post("/api/user/setPfp", checkLogin, setPfp);
 
 // Enrollement routes
 router.get("/api/enrollment/getEnrollments", checkLogin, getEnrollments);

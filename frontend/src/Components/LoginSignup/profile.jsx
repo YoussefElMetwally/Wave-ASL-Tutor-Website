@@ -5,12 +5,42 @@ import { Link, useNavigate } from 'react-router-dom';
 import './profile.css';
 import { Footer } from './Footer';
 
+// Import the profile pictures
+import pfp1 from '../Assets/profilePictures/1.png';
+import pfp2 from '../Assets/profilePictures/2.png';
+import pfp3 from '../Assets/profilePictures/3.png';
+import pfp4 from '../Assets/profilePictures/4.png';
+import pfp5 from '../Assets/profilePictures/5.png';
+import pfp6 from '../Assets/profilePictures/6.png';
+import pfp7 from '../Assets/profilePictures/7.png';
+import pfp8 from '../Assets/profilePictures/8.png';
+import pfp9 from '../Assets/profilePictures/9.png';
+import pfp10 from '../Assets/profilePictures/10.png';
+
 export const ProfilePage = () => {
     const { isDarkMode, toggleTheme } = useTheme();
     const { isSoundEnabled, toggleSound } = useSound();
     const [firstName, setFirstName] = useState("User");
+    const [userId, setUserId] = useState("");
     const [loading, setLoading] = useState(true);
+    const [showPfpSelector, setShowPfpSelector] = useState(false);
+    const [selectedPfp, setSelectedPfp] = useState(null);
+    const [currentPfp, setCurrentPfp] = useState(null);
     const navigate = useNavigate();
+
+    // Array of profile pictures
+    const profilePictures = [
+        { id: 1, src: pfp1 },
+        { id: 2, src: pfp2 },
+        { id: 3, src: pfp3 },
+        { id: 4, src: pfp4 },
+        { id: 5, src: pfp5 },
+        { id: 6, src: pfp6 },
+        { id: 7, src: pfp7 },
+        { id: 8, src: pfp8 },
+        { id: 9, src: pfp9 },
+        { id: 10, src: pfp10 },
+    ];
 
     const handleSignOut = async () => {
         try {
@@ -69,8 +99,18 @@ export const ProfilePage = () => {
                 // Check if userData has direct first_name property or nested in a user object
                 if (userData && userData.first_name) {
                     setFirstName(userData.first_name);
+                    setUserId(userData.user_id);
+                    // Set current profile picture if available
+                    if (userData.profile_picture) {
+                        setCurrentPfp(userData.profile_picture);
+                    }
                 } else if (userData && userData.user && userData.user.first_name) {
                     setFirstName(userData.user.first_name);
+                    setUserId(userData.user.user_id);
+                    // Set current profile picture if available
+                    if (userData.user.profile_picture) {
+                        setCurrentPfp(userData.user.profile_picture);
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching user data:", error);
@@ -83,6 +123,46 @@ export const ProfilePage = () => {
         fetchUserData();
     }, []);
 
+    const updateProfilePicture = async (pfpId) => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            const response = await fetch("http://localhost:8000/api/user/setPfp", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    user_id: userId,
+                    pfp: pfpId
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update profile picture");
+            }
+
+            setCurrentPfp(pfpId);
+            setShowPfpSelector(false);
+            setSelectedPfp(null);
+        } catch (error) {
+            console.error("Error updating profile picture:", error);
+        }
+    };
+
+    const handlePfpSelect = (pfpId) => {
+        setSelectedPfp(pfpId);
+    };
+
+    const handlePfpConfirm = () => {
+        if (selectedPfp) {
+            updateProfilePicture(selectedPfp);
+        }
+    };
+
     if (loading) {
         return (
           <div className="loading">
@@ -91,6 +171,14 @@ export const ProfilePage = () => {
           </div>
         );
       }
+
+    // Get the appropriate profile picture
+    const getProfilePicture = () => {
+        if (currentPfp && currentPfp >= 1 && currentPfp <= 10) {
+            return profilePictures[currentPfp - 1].src;
+        }
+        return null;
+    };
 
     // Sample user data
     const user = {
@@ -136,7 +224,18 @@ export const ProfilePage = () => {
             <main className="profile-content">
                 <section className="profile-header">
                     <div className="avatar-container">
-                        <div className="avatar">{user.avatar}</div>
+                        {getProfilePicture() ? (
+                            <img 
+                                src={getProfilePicture()} 
+                                alt="Profile" 
+                                className="avatar-image" 
+                                onClick={() => setShowPfpSelector(true)}
+                            />
+                        ) : (
+                            <div className="avatar" onClick={() => setShowPfpSelector(true)}>
+                                {user.avatar}
+                            </div>
+                        )}
                         <h1>{user.name}</h1>
                         <p className="level">Level {user.level}</p>
                     </div>
@@ -166,6 +265,35 @@ export const ProfilePage = () => {
                         </div>
                     </div>
                 </section>
+
+                {showPfpSelector && (
+                    <div className="pfp-selector-overlay" onClick={() => setShowPfpSelector(false)}>
+                        <div className="pfp-selector-container" onClick={(e) => e.stopPropagation()}>
+                            <h3>Choose Your Profile Picture</h3>
+                            <div className="pfp-grid">
+                                {profilePictures.map((pfp) => (
+                                    <div 
+                                        key={pfp.id} 
+                                        className={`pfp-item ${selectedPfp === pfp.id ? 'selected' : ''}`}
+                                        onClick={() => handlePfpSelect(pfp.id)}
+                                    >
+                                        <img src={pfp.src} alt={`Profile ${pfp.id}`} />
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="pfp-selector-buttons">
+                                <button onClick={() => setShowPfpSelector(false)}>Cancel</button>
+                                <button 
+                                    onClick={handlePfpConfirm}
+                                    disabled={!selectedPfp}
+                                    className={!selectedPfp ? 'disabled' : ''}
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <section className="achievements-section">
                     <h2>Achievements</h2>

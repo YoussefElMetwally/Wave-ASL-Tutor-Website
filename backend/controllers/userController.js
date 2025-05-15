@@ -247,6 +247,7 @@ exports.getUserData = async (req, res) => {
       last_name: user.last_name,
       name: user.name,
       email: user.email,
+      profile_picture: user.profile_picture
     });
   } catch (error) {
     console.error("Error fetching user data:", error);
