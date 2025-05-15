@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "../LoginSignup/ThemeContext";
 import { useSound } from "../LoginSignup/SoundContext";
 import "./Course.css";
+import closeIcon from '../Assets/close.png'; // Import the close icon
 // Import MediaPipe Hands library and utilities
 import { Hands } from "@mediapipe/hands";
 import { Camera } from "@mediapipe/camera_utils";
@@ -54,8 +55,7 @@ export const LessonVideo = () => {
   const [courseId, setCourseId] = useState(null);
   // Add a state to track feedback display status
   const [feedbackStatus, setFeedbackStatus] = useState(null); // 'correct', 'incorrect', or null
-  const [showLessonCompletedPopup, setShowLessonCompletedPopup] =
-    useState(false);
+  const [showLessonCompletedPopup, setShowLessonCompletedPopup] = useState(false);
 
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
@@ -76,15 +76,15 @@ export const LessonVideo = () => {
   const playSound = (isCorrect) => {
     // Only play sounds if they're enabled in settings
     if (!isSoundEnabled) return;
-
+    
     if (isCorrect && correctSoundRef.current) {
       correctSoundRef.current.currentTime = 0;
-      correctSoundRef.current.play().catch((error) => {
+      correctSoundRef.current.play().catch(error => {
         console.error("Error playing correct sound:", error);
       });
     } else if (!isCorrect && incorrectSoundRef.current) {
       incorrectSoundRef.current.currentTime = 0;
-      incorrectSoundRef.current.play().catch((error) => {
+      incorrectSoundRef.current.play().catch(error => {
         console.error("Error playing incorrect sound:", error);
       });
     }
@@ -93,7 +93,7 @@ export const LessonVideo = () => {
   useEffect(() => {
     // Prevent duplicate fetches in development mode (React StrictMode)
     if (fetchedRef.current) return;
-
+    
     const fetchLesson = async () => {
       try {
         fetchedRef.current = true;
@@ -110,30 +110,26 @@ export const LessonVideo = () => {
 
         if (response.status === 403) {
           // User is not enrolled in this course
-          console.error("Access denied: Not enrolled in this course");
-          navigate("/home", {
-            state: {
-              notificationMessage:
-                "You need to enroll in this course before accessing lessons",
-              notificationType: "error",
-            },
+          console.error('Access denied: Not enrolled in this course');
+          navigate('/home', { 
+            state: { 
+              notificationMessage: 'You need to enroll in this course before accessing lessons',
+              notificationType: 'error'
+            } 
           });
           return;
         }
 
-        // If the new endpoint fails for reasons other than access control,
+        // If the new endpoint fails for reasons other than access control, 
         // fall back to the original endpoint
         if (!response.ok && response.status !== 403) {
-          response = await fetch(
-            `http://localhost:8000/api/lessons/${lessonId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-            }
-          );
+          response = await fetch(`http://localhost:8000/api/lessons/${lessonId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
         }
 
         if (!response.ok) {
@@ -158,19 +154,16 @@ export const LessonVideo = () => {
         }
 
         setLesson(data);
-
+        
         // Fetch the course ID based on the slug
-        const courseResponse = await fetch(
-          `http://localhost:8000/api/courses/${courseSlug}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          }
-        );
-
+        const courseResponse = await fetch(`http://localhost:8000/api/courses/${courseSlug}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
         if (courseResponse.ok) {
           const courseData = await courseResponse.json();
           setCourseId(courseData.course_id);
@@ -191,14 +184,14 @@ export const LessonVideo = () => {
     const checkLessonCompletion = async () => {
       // Only proceed if we have a lesson loaded, not already marked as completed, and have courseId
       if (!lesson || lessonCompletedRef.current || !courseId) return;
-
+      
       // Check if all signs (videos) are completed
       if (completedSigns.length >= lesson.videos.length) {
         lessonCompletedRef.current = true;
         await markLessonAsCompleted();
       }
     };
-
+    
     checkLessonCompletion();
   }, [completedSigns, lesson, courseId]);
 
@@ -206,38 +199,30 @@ export const LessonVideo = () => {
   const markLessonAsCompleted = async () => {
     try {
       const token = localStorage.getItem("token");
-      const userId = JSON.parse(atob(token.split(".")[1])).id;
-
+      const userId = JSON.parse(atob(token.split('.')[1])).id;
+      
       // Call the API to increment completed lessons
-      const response = await fetch(
-        "http://localhost:8000/api/enrollment/increment",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            course_id: courseId,
-            lesson_id: lessonId,
-          }),
-          credentials: "include",
-        }
-      );
+      const response = await fetch("http://localhost:8000/api/enrollment/increment", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          course_id: courseId,
+          lesson_id: lessonId
+        }),
+        credentials: "include",
+      });
 
       if (response.ok) {
         const data = await response.json();
-        console.log(
-          "Lesson marked as completed! Course progress updated:",
-          data.progress
-        );
-
+        console.log("Lesson marked as completed! Course progress updated:", data.progress);
+        
         // Show a completion message
         if (completedSigns.length === lesson.videos.length) {
-          alert(
-            "Congratulations! You've completed this lesson. Your progress has been updated."
-          );
+          alert("Congratulations! You've completed this lesson. Your progress has been updated.");
         }
       } else {
         console.error("Failed to update lesson completion status");
@@ -503,18 +488,18 @@ export const LessonVideo = () => {
   const stopRecording = async () => {
     // Immediately update flags to prevent double requests
     if (!isRecordingActive || isSubmitting) return; // Guard against duplicate calls
-
+    
     // Clear any existing recording interval
     if (recordingIntervalRef.current) {
       clearInterval(recordingIntervalRef.current);
       recordingIntervalRef.current = null;
     }
-
+    
     setRecording(false);
     isRecordingActive = false;
     setRecordingTime(3);
     setIsSubmitting(true); // Set flag to indicate we're submitting
-
+    
     // Clear any existing feedback temporarily during submission
     setFeedbackStatus(null);
 
@@ -563,15 +548,14 @@ export const LessonVideo = () => {
       const data = await response.json();
 
       // Check if the sign is correct
-      const isCorrect =
-        data.predictedSign === lesson.answers[currentVideoIndex];
-
+      const isCorrect = data.predictedSign === lesson.answers[currentVideoIndex];
+      
       // Set the feedback status first before any other state updates
-      setFeedbackStatus(isCorrect ? "correct" : "incorrect");
-
+      setFeedbackStatus(isCorrect ? 'correct' : 'incorrect');
+      
       // Then update the sign correctness state
       setIsSignCorrect(isCorrect);
-
+      
       // Now add to saved recordings
       setSavedRecordings((prev) => [
         ...prev,
@@ -581,39 +565,36 @@ export const LessonVideo = () => {
           result: {
             predictedSign: data.predictedSign,
             confidence: data.confidence / 100, // Convert percentage to decimal
-            isCorrect: isCorrect,
+            isCorrect: isCorrect
           },
         },
       ]);
-
+      
       // Play sound effect based on result
       playSound(isCorrect);
 
       if (isCorrect) {
         // Add the current sign to completed signs if not already there
-        setCompletedSigns((prev) => {
+        setCompletedSigns(prev => {
           if (!prev.includes(currentVideoIndex)) {
             const newCompletedSigns = [...prev, currentVideoIndex];
-
+            
             // Check if all signs are completed after adding this one
-            if (
-              newCompletedSigns.length === lesson.videos.length &&
-              !lessonCompletedRef.current
-            ) {
+            if (newCompletedSigns.length === lesson.videos.length && !lessonCompletedRef.current) {
               // Mark the lesson as completed asynchronously
               markLessonAsCompleted();
               lessonCompletedRef.current = true;
             }
-
+            
             return newCompletedSigns;
           }
           return prev;
         });
-
+        
         setTimeout(() => {
           // Just show success but keep the user on the camera page
           // No need to set isSignCorrect again as it's already set
-
+          
           // Show a notification that they've completed the sign successfully
           setShowPracticeSuccess(true);
           setTimeout(() => {
@@ -637,15 +618,15 @@ export const LessonVideo = () => {
       cameraRef.current.stop();
       cameraRef.current = null;
     }
-
+    
     if (handsRef.current) {
       handsRef.current.close();
       handsRef.current = null;
     }
-
+    
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach((track) => track.stop());
+      tracks.forEach(track => track.stop());
       videoRef.current.srcObject = null;
     }
   };
@@ -656,7 +637,7 @@ export const LessonVideo = () => {
       // Clean up when component unmounts
       cleanupCamera();
       isRecordingActive = false;
-
+      
       // Clear any recording interval
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current);
@@ -703,15 +684,19 @@ export const LessonVideo = () => {
 
   useEffect(() => {
     // Show the completion popup when the user completes the final sign
-    if (
-      completedSigns.length > 0 &&
-      lesson &&
-      completedSigns.includes(lesson.videos.length - 1) &&
-      currentVideoIndex === lesson.videos.length - 1
-    ) {
+    if (completedSigns.length > 0 && 
+        lesson && 
+        completedSigns.includes(lesson.videos.length - 1) && 
+        currentVideoIndex === lesson.videos.length - 1) {
       setShowLessonCompletedPopup(true);
     }
   }, [completedSigns, lesson, currentVideoIndex]);
+
+  // Function to handle back button click
+  const handleBackClick = () => {
+    // Navigate back to the course details page
+    navigate(`/course/${courseSlug}`);
+  };
 
   if (loading) {
     return (
@@ -731,21 +716,20 @@ export const LessonVideo = () => {
   }
 
   return (
-    <div className="lesson-container">
+    
+    <div className={`lesson-video-container ${isDarkMode ? "dark-mode" : "light-mode"}`}>
+      {/* Back button */}
+      <div className="back-button" onClick={handleBackClick}>
+        <img src={closeIcon} alt="Back to course" title="Back to course" />
+      </div>
       {/* Audio elements for sound effects */}
       <audio ref={correctSoundRef} preload="auto">
-        <source
-          src="/src/Components/Assets/sounds/correct_sound.wav"
-          type="audio/wav"
-        />
+        <source src="/src/Components/Assets/sounds/correct_sound.wav" type="audio/wav" />
       </audio>
       <audio ref={incorrectSoundRef} preload="auto">
-        <source
-          src="/src/Components/Assets/sounds/incorrect_sound.wav"
-          type="audio/wav"
-        />
+        <source src="/src/Components/Assets/sounds/incorrect_sound.wav" type="audio/wav" />
       </audio>
-
+      
       {/* Lesson Completed Popup */}
       {showLessonCompletedPopup && (
         <div className="lesson-completed-overlay">
@@ -785,9 +769,9 @@ export const LessonVideo = () => {
             {lesson.videos.map((_, index) => (
               <span
                 key={index}
-                className={`dot ${
-                  index === currentVideoIndex ? "active" : ""
-                } ${completedSigns.includes(index) ? "completed" : ""}`}
+                className={`dot ${index === currentVideoIndex ? "active" : ""} ${
+                  completedSigns.includes(index) ? "completed" : ""
+                }`}
               ></span>
             ))}
           </div>
@@ -795,8 +779,8 @@ export const LessonVideo = () => {
       </div>
 
       <div className="content-container">
-        <div className="video-section">
-          {!isPracticeMode ? (
+        {!isPracticeMode ? (
+          <div className="video-section full-width">
             <div className="video-player">
               {lesson.videos && lesson.videos.length > 0 ? (
                 <>
@@ -835,27 +819,22 @@ export const LessonVideo = () => {
                         Next
                       </button>
                     </div>
-
+                    
                     {showNextButton && (
                       <div className="next-sign-overlay">
                         <div className="next-sign-content">
                           <p>Ready to move to the next sign?</p>
-                          <button
+                          <button 
                             className="next-sign-button"
                             onClick={() => {
-                              if (
-                                currentVideoIndex <
-                                lesson.videos.length - 1
-                              ) {
+                              if (currentVideoIndex < lesson.videos.length - 1) {
                                 goToNextVideo();
                               } else {
                                 setIsVideoComplete(true);
                               }
                             }}
                           >
-                            {currentVideoIndex < lesson.videos.length - 1
-                              ? "Next Sign"
-                              : "Complete Lesson"}
+                            {currentVideoIndex < lesson.videos.length - 1 ? 'Next Sign' : 'Complete Lesson'}
                           </button>
                         </div>
                       </div>
@@ -872,192 +851,165 @@ export const LessonVideo = () => {
                 </div>
               )}
             </div>
-          ) : (
-            <div className="practice-container">
-              <div className="webcam-container">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="webcam-video"
-                />
-                <canvas
-                  ref={canvasRef}
-                  className="hand-canvas"
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    zIndex: 10,
-                  }}
-                />
 
-                {handDetected && (
-                  <div className="hand-detected-indicator">Hand Detected ✓</div>
-                )}
+            <div className="lesson-actions">
+              {/* Remove the practice button from here */}
+            </div>
+          </div>
+        ) : (
+          <div className="practice-container full-width">
+            <div className="webcam-container">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="webcam-video"
+              />
+              <canvas
+                ref={canvasRef}
+                className="hand-canvas"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  zIndex: 10,
+                }}
+              />
 
-                {countdown && (
-                  <div className="countdown-overlay">
-                    <span className="countdown-number">{countdown}</span>
-                  </div>
-                )}
+              {handDetected && (
+                <div className="hand-detected-indicator">Hand Detected ✓</div>
+              )}
 
-                {recording && recordingTime > 0 && (
-                  <div className="recording-overlay">
-                    <div className="recording-indicator">
-                      <span className="recording-dot"></span>
-                      Recording: {recordingTime}s
-                    </div>
-                  </div>
-                )}
+              {countdown && (
+                <div className="countdown-overlay">
+                  <span className="countdown-number">{countdown}</span>
+                </div>
+              )}
 
-                {feedbackStatus === "correct" && hasAttempted && (
-                  <div className="feedback-overlay correct">
-                    <span>✓ Correct!</span>
-                  </div>
-                )}
-
-                {feedbackStatus === "incorrect" &&
-                  hasAttempted &&
-                  recording === false &&
-                  savedRecordings.length > 0 &&
-                  !isSubmitting && (
-                    <div className="feedback-overlay incorrect">
-                      <span>
-                        ✗ Incorrect! You signed:{" "}
-                        {savedRecordings[savedRecordings.length - 1].result
-                          ?.predictedSign || "Unknown"}
-                      </span>
-                    </div>
-                  )}
-              </div>
-
-              <div className="practice-controls">
-                {!cameraStarted && (
-                  <button onClick={startCamera} className="camera-btn">
-                    Start Camera
-                  </button>
-                )}
-                {cameraStarted && !recording && !isSignCorrect && (
-                  <button onClick={startRecording} className="record-btn">
-                    Start Recording
-                  </button>
-                )}
-                {hasAttempted && !recording && (
-                  <button
-                    onClick={() => {
-                      setHasAttempted(false);
-                      setIsSignCorrect(false);
-                      setFeedbackStatus(null);
-                      setRecordingTime(3); // Reset recording time
-                      landmarkFramesRef.current = []; // Clear stored landmarks
-                      setDebugInfo({
-                        framesProcessed: 0,
-                        landmarksDetected: 0,
-                      }); // Reset debug info
-                    }}
-                    className="clear-btn"
-                  >
-                    Clear Results
-                  </button>
-                )}
-                {!recording && (
-                  <button
-                    onClick={() => {
-                      cleanupCamera();
-                      setIsPracticeMode(false);
-                      setCameraStarted(false);
-                      setHasAttempted(false);
-                    }}
-                    className="back-btn"
-                  >
-                    Back to Video
-                  </button>
-                )}
-                {isSignCorrect &&
-                  completedSigns.includes(currentVideoIndex) &&
-                  currentVideoIndex < lesson.videos.length - 1 && (
-                    <button
-                      onClick={() => {
-                        cleanupCamera();
-                        setIsPracticeMode(false);
-                        setCameraStarted(false);
-                        setHasAttempted(false);
-                        setIsSignCorrect(false);
-                        goToNextVideo();
-                      }}
-                      className="next-sign-btn"
-                    >
-                      Next Sign
-                    </button>
-                  )}
-              </div>
-
-              {savedRecordings.length > 0 && (
-                <div className="saved-recordings">
-                  <h3>Your Attempts</h3>
-                  <div className="recordings-list">
-                    {savedRecordings.map((recording, index) => (
-                      <div key={index} className="recording-item">
-                        <div className="recording-result">
-                          <div
-                            className={`result-indicator ${
-                              recording.result?.isCorrect
-                                ? "correct"
-                                : "incorrect"
-                            }`}
-                          >
-                            {recording.result?.isCorrect
-                              ? "✓ Correct"
-                              : "✗ Incorrect"}
-                          </div>
-                        </div>
-                        <div className="recording-info">
-                          <span>
-                            <strong>Expected:</strong> {recording.sign}
-                          </span>
-                          <span>
-                            <strong>You signed:</strong>{" "}
-                            {recording.result?.predictedSign || "Unknown"}
-                          </span>
-                          <span>
-                            <strong>Confidence:</strong>{" "}
-                            {Math.round(
-                              (recording.result?.confidence || 0) * 100
-                            )}
-                            %
-                          </span>
-                          <span>
-                            <strong>Time:</strong>{" "}
-                            {new Date(recording.timestamp).toLocaleTimeString()}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+              {recording && recordingTime > 0 && (
+                <div className="recording-overlay">
+                  <div className="recording-indicator">
+                    <span className="recording-dot"></span>
+                    Recording: {recordingTime}s
                   </div>
                 </div>
               )}
+
+              {feedbackStatus === 'correct' && hasAttempted && (
+                <div className="feedback-overlay correct">
+                  <span>✓ Correct!</span>
+                </div>
+              )}
+
+              {feedbackStatus === 'incorrect' && hasAttempted && recording === false && savedRecordings.length > 0 && !isSubmitting && (
+                <div className="feedback-overlay incorrect">
+                  <span>✗ Incorrect! You signed: {
+                    savedRecordings[savedRecordings.length-1].result?.predictedSign || "Unknown"
+                  }</span>
+                </div>
+              )}
             </div>
-          )}
 
-          <div className="lesson-actions">
-            {/* Remove the practice button from here */}
-          </div>
-        </div>
+            <div className="practice-controls">
+              {!cameraStarted && (
+                <button onClick={startCamera} className="camera-btn">
+                  Start Camera
+                </button>
+              )}
+              {cameraStarted && !recording && !isSignCorrect && (
+                <button onClick={startRecording} className="record-btn">
+                  Start Recording
+                </button>
+              )}
+              {hasAttempted && !recording && (
+                <button 
+                  onClick={() => {
+                    setHasAttempted(false);
+                    setIsSignCorrect(false);
+                    setFeedbackStatus(null);
+                    setRecordingTime(3); // Reset recording time
+                    landmarkFramesRef.current = []; // Clear stored landmarks
+                    setDebugInfo({ framesProcessed: 0, landmarksDetected: 0 }); // Reset debug info
+                  }} 
+                  className="clear-btn"
+                >
+                  Clear Results
+                </button>
+              )}
+              {!recording && (
+                <button
+                  onClick={() => {
+                    cleanupCamera();
+                    setIsPracticeMode(false);
+                    setCameraStarted(false);
+                    setHasAttempted(false);
+                  }}
+                  className="back-btn"
+                >
+                  Back to Video
+                </button>
+              )}
+              {isSignCorrect && completedSigns.includes(currentVideoIndex) && currentVideoIndex < lesson.videos.length - 1 && (
+                <button
+                  onClick={() => {
+                    cleanupCamera();
+                    setIsPracticeMode(false);
+                    setCameraStarted(false);
+                    setHasAttempted(false);
+                    setIsSignCorrect(false);
+                    goToNextVideo();
+                  }}
+                  className="next-sign-btn"
+                >
+                  Next Sign
+                </button>
+              )}
+            </div>
 
-        <div className="lesson-sidebar">
-          <div className="lesson-tips">
-            <h3>Tips</h3>
-            <ul>
-              <li>Watch the hand movements carefully</li>
-              <li>Practice in front of a mirror</li>
-              <li>Focus on finger positioning</li>
-            </ul>
+            {savedRecordings.length > 0 && (
+              <div className="saved-recordings">
+                <h3>Your Attempts</h3>
+                <div className="recordings-list">
+                  {savedRecordings.map((recording, index) => (
+                    <div key={index} className="recording-item">
+                      <div className="recording-result">
+                        <div
+                          className={`result-indicator ${
+                            recording.result?.isCorrect
+                              ? "correct"
+                              : "incorrect"
+                          }`}
+                        >
+                          {recording.result?.isCorrect
+                            ? "✓ Correct"
+                            : "✗ Incorrect"}
+                        </div>
+                      </div>
+                      <div className="recording-info">
+                        <span><strong>Expected:</strong> {recording.sign}</span>
+                        <span><strong>You signed:</strong> {recording.result?.predictedSign || "Unknown"}</span>
+                        <span>
+                          <strong>Confidence:</strong>{" "}
+                          {Math.round(
+                            (recording.result?.confidence || 0) * 100
+                          )}
+                          %
+                        </span>
+                        <span>
+                          <strong>Time:</strong>{" "}
+                          {new Date(recording.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

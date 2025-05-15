@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../LoginSignup/ThemeContext";
 import "./Course.css";
+import closeIcon from '../Assets/close.png'; // Import the close icon
 
 export const CourseDetails = () => {
   const { courseSlug } = useParams();
@@ -17,6 +18,12 @@ export const CourseDetails = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [notificationType, setNotificationType] = useState("error");
+
+  // Function to handle back button click
+  const handleBackClick = () => {
+    // Navigate to the home page
+    navigate('/home');
+  };
 
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
@@ -163,6 +170,11 @@ export const CourseDetails = () => {
 
   return (
     <div className="course-details-container">
+      {/* Back button */}
+      <div className="back-button" onClick={handleBackClick}>
+        <img src={closeIcon} alt="Back to home" title="Back to home" />
+      </div>
+      
       <div className="course-header">
         <div className="course-title-section">
           <h1>{course.title}</h1>

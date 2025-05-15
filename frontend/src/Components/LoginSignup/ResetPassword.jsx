@@ -102,7 +102,7 @@ export const ResetPassword = () => {
         </div>
         {message && <div className="message">{message}</div>}
         <div className="submit-container">
-          <button type="submit" className="submit">
+          <button type="submit" className="submit" style={{width: '170px'}}>
             Reset Password
           </button>
         </div>
