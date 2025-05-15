@@ -14,18 +14,18 @@ exports.incrementCompletedLessons = async (req, res) => {
     }
 
     // Initialize completedLessonsArray if it doesn't exist
-    if (!enrollment.completedLessonsArray) {
-      enrollment.completedLessonsArray = [];
+    if (!enrollment.completed_lessons_id) {
+      enrollment.completed_lessons_id = [];
     }
 
     // Check if this lesson has already been completed
-    const lessonAlreadyCompleted = enrollment.completedLessonsArray.includes(lesson_id);
+    const lessonAlreadyCompleted = enrollment.completed_lessons_id.includes(lesson_id);
     
     // Only increment and add to the array if the lesson hasn't been completed before
     if (!lessonAlreadyCompleted) {
       // Step 2: Increment completed lessons
       enrollment.completed_lessons += 1;
-      enrollment.completedLessonsArray.push(lesson_id);
+      enrollment.completed_lessons_id.push(lesson_id);
     }
 
     // Step 3: Get course data
