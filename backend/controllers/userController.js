@@ -240,6 +240,19 @@ exports.getUserData = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Check if streak needs to be reset (no activity in the past 24 hours)
+    if (user.current_streak > 0 && user.last_activity_date) {
+      const now = new Date();
+      const lastActivity = new Date(user.last_activity_date);
+      const daysSinceLastActivity = Math.floor((now - lastActivity) / (1000 * 60 * 60 * 24));
+      
+      // If more than 1 day has passed since last activity, reset streak
+      if (daysSinceLastActivity > 1) {
+        user.current_streak = 0;
+        await user.save();
+      }
+    }
+
     // Return user data excluding sensitive information
     res.status(200).json({
       user_id: user.user_id,
@@ -247,7 +260,10 @@ exports.getUserData = async (req, res) => {
       last_name: user.last_name,
       name: user.name,
       email: user.email,
-      profile_picture: user.profile_picture
+      profile_picture: user.profile_picture,
+      current_streak: user.current_streak || 0,
+      max_streak: user.max_streak || 0,
+      last_activity_date: user.last_activity_date
     });
   } catch (error) {
     console.error("Error fetching user data:", error);
@@ -357,5 +373,72 @@ exports.getCurrentCourse = async (req, res) => {
     res
       .status(400)
       .json({ message: "Error Fetching Current Course: " + error });
+  }
+};
+
+exports.getUserStreak = async (req, res) => {
+  try {
+    // Get user ID from the decoded token in the middleware
+    const userId = req.user.id;
+
+    // Find the user by ID
+    const user = await User.findOne({ user_id: userId });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Get current date (without time)
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Calculate time until streak resets
+    let timeUntilReset = null;
+    let streakStatus = "active";
+    
+    if (user.last_activity_date) {
+      const lastActivity = new Date(user.last_activity_date);
+      const lastActivityDay = new Date(
+        lastActivity.getFullYear(), 
+        lastActivity.getMonth(), 
+        lastActivity.getDate()
+      );
+      
+      // Calculate the day difference
+      const dayDiff = Math.floor((today - lastActivityDay) / (1000 * 60 * 60 * 24));
+      
+      if (dayDiff > 1) {
+        // Streak already broken
+        streakStatus = "broken";
+      } else if (dayDiff === 1) {
+        // Need to complete a lesson today to maintain streak
+        streakStatus = "at_risk";
+        
+        // Calculate time until midnight
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        timeUntilReset = tomorrow - now;
+      } else {
+        // Already completed a lesson today
+        streakStatus = "active";
+        
+        // Calculate time until midnight
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        timeUntilReset = tomorrow - now;
+      }
+    }
+    
+    res.status(200).json({
+      current_streak: user.current_streak || 0,
+      max_streak: user.max_streak || 0,
+      last_activity_date: user.last_activity_date,
+      streak_status: streakStatus,
+      time_until_reset: timeUntilReset,
+      streak_updated_today: user.streak_updated_today || false
+    });
+  } catch (error) {
+    console.error("Error fetching user streak:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

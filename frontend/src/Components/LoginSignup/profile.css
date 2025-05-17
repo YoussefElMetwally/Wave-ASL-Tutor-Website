@@ -76,6 +76,55 @@
     color: var(--text-color);
 }
 
+.streak-timer {
+    display: block;
+    font-size: 0.85rem;
+    color: #ff4757;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    animation: pulse-text 1.5s infinite;
+}
+
+@keyframes pulse-text {
+    0% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.6;
+    }
+}
+
+.streak-message {
+    background: var(--container-bg);
+    border-radius: 15px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    box-shadow: var(--shadow);
+    text-align: center;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Status-specific streak message styling */
+.streak-message[data-status="at_risk"] {
+    border-left-color: #ff4757;
+    color: #ff4757;
+}
+
+.streak-message[data-status="active"] {
+    border-left-color: #4CAF50;
+    color: #4CAF50;
+}
+
+.streak-message[data-status="broken"] {
+    border-left-color: #FFC107;
+    color: #ff9800;
+}
+
 .nav-right {
     display: flex;
     align-items: center;
@@ -325,6 +374,7 @@
     box-shadow: 0 2px 4px rgba(0, 170, 255, 0.3);
 }
 
+/* Mobile responsiveness */
 @media (max-width: 768px) {
     .profile-header {
         grid-template-columns: 1fr;
@@ -337,65 +387,90 @@
     .achievements-grid {
         grid-template-columns: 1fr;
     }
-}
 
-@keyframes loading-spinner {
-    0% {
-      transform: rotate(0deg);
+    /* Mobile nav bar adjustments */
+    .nav-bar {
+        padding: 0.75rem 1rem;
+        flex-wrap: wrap;
     }
-    100% {
-      transform: rotate(360deg);
+
+    .nav-bar .logo {
+        font-size: 1.2rem;
+    }
+
+    .nav-bar .user-profile {
+        position: static;
+        transform: none;
+        margin-left: auto;
+        margin-right: 1rem;
+    }
+
+    .nav-bar .user-profile .streak {
+        display: none;
+    }
+
+    .nav-bar .sign-out-button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Adjust streak tracker for smaller screens */
+    .streak-days {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .streak-day {
+        width: calc(25% - 10px);
+        margin-bottom: 15px;
+    }
+    
+    /* Make streak header more compact */
+    .streak-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .streak-timer {
+        margin-top: 0.5rem;
+        margin-left: 2.3rem;
     }
 }
 
-.loading {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    width: 100%;
-    background: var(--background-color);
-    overflow: hidden;
+@media (max-width: 480px) {
+    .nav-bar .user-profile .xp {
+        font-size: 0.9rem;
+    }
+
+    .profile-content {
+        padding: 1rem;
+    }
+    
+    .streak-days {
+        padding: 0.5rem;
+    }
+    
+    .day-circle {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .day-name {
+        font-size: 0.7rem;
+    }
+    
+    .streak-title h3 {
+        font-size: 1rem;
+    }
+    
+    /* Further optimize for very small screens */
+    .streak-day {
+        width: calc(33.33% - 10px);
+    }
 }
 
-.loading-text {
-    margin-top: 1rem;
-    font-size: 1.2rem;
-    color: var(--text-color);
-    font-weight: 500;
-    border: none;
-}
-
-.loading-spinner {
-    display: inline-block;
-    width: 80px;
-    height: 80px;
-    position: relative;
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    outline: none;
-}
-
-.loading-spinner:after {
-    content: " ";
-    display: block;
-    position: absolute;
-    width: 64px;
-    height: 64px;
-    top: 8px;
-    left: 8px;
-    border-radius: 50%;
-    border: 4px solid var(--primary-color);
-    border-color: var(--primary-color) transparent var(--primary-color) transparent;
-    animation: loading-spinner 1.2s linear infinite;
-    box-sizing: border-box;
-}
-
-.loading-spinner:before {
-    content: none;
-}
+/* Loading styles are imported from LoginSignup.css */
 
 /* Profile Picture Selector */
 .pfp-selector-overlay {
@@ -557,3 +632,192 @@
     transform: none !important;
     box-shadow: none !important;
 }
+
+/* Popup styles are imported from LoginSignup.css */
+
+/* Streak Tracking Bar */
+.streak-tracker {
+    background: var(--container-bg);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.streak-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.streak-title {
+    display: flex;
+    align-items: center;
+}
+
+.streak-title h3 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.streak-flame {
+    font-size: 1.5rem;
+    margin-right: 0.8rem;
+}
+
+.max-streak {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    background-color: rgba(0, 170, 255, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    margin-left: 0.8rem;
+    font-weight: 600;
+}
+
+.streak-days {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.streak-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: calc(100% / 7 - 10px);
+}
+
+.day-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--progress-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    border: 2px solid transparent;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.flame-icon {
+    font-size: 1.5rem;
+    filter: grayscale(100%) opacity(0.5);
+    transition: all 0.3s ease;
+}
+
+.day-name {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+/* Streak day status styles */
+.streak-day.empty .day-circle {
+    background: var(--progress-bg);
+}
+
+.streak-day.completed .day-circle {
+    background: rgba(0, 170, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 170, 255, 0.1);
+}
+
+.streak-day.completed .flame-icon {
+    filter: none;
+    transform: scale(1.1);
+}
+
+.streak-day.current .day-circle {
+    border-color: var(--primary-color);
+    animation: pulse-border 1.5s infinite;
+}
+
+.streak-day.current .flame-icon {
+    filter: grayscale(50%) opacity(0.8);
+    animation: pulse-flame 1.5s infinite;
+}
+
+.streak-day.today .day-name {
+    font-weight: 700;
+    opacity: 1;
+}
+
+@keyframes pulse-border {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 170, 255, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(0, 170, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 170, 255, 0);
+    }
+}
+
+@keyframes pulse-flame {
+    0% {
+        transform: scale(1);
+        filter: grayscale(50%) opacity(0.8);
+    }
+    50% {
+        transform: scale(1.1);
+        filter: grayscale(30%) opacity(0.9);
+    }
+    100% {
+        transform: scale(1);
+        filter: grayscale(50%) opacity(0.8);
+    }
+}
+
+/* Mobile optimizations for streak tracker */
+@media (max-width: 480px) {
+    .streak-days {
+        padding: 0.5rem;
+    }
+    
+    .day-circle {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .day-name {
+        font-size: 0.7rem;
+    }
+    
+    .streak-title h3 {
+        font-size: 1rem;
+    }
+}
+
+.navbar-logo {
+    display: flex;
+    align-items: center;
+  }
+  
+  .navbar-logo img {
+    height: 40px;
+    margin-right: 0.5rem;
+  }
+  
+  .navbar-logo span {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .navbar-logo img {
+    height: 32px;
+  }
+  
+  .navbar-logo span {
+    font-size: 1.3rem;
+  }
+  

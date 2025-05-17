@@ -3,7 +3,9 @@ import { useTheme } from './ThemeContext';
 import { useSound } from './SoundContext';
 import { Link, useNavigate } from 'react-router-dom';
 import './profile.css';
+import './LoginSignup.css';
 import { Footer } from './Footer';
+import logo from "../Assets/imageedit_7_3337107561.png";
 
 // Import the profile pictures
 import pfp1 from '../Assets/profilePictures/1.png';
@@ -17,6 +19,29 @@ import pfp8 from '../Assets/profilePictures/8.png';
 import pfp9 from '../Assets/profilePictures/9.png';
 import pfp10 from '../Assets/profilePictures/10.png';
 
+// Popup component
+const Popup = ({ message, onClose }) => {
+    // Add popup-active class to body when component mounts
+    useEffect(() => {
+        document.body.classList.add('popup-active');
+        
+        // Remove class when component unmounts
+        return () => {
+            document.body.classList.remove('popup-active');
+        };
+    }, []);
+
+    return (
+        <div className="popup-overlay">
+            <div className="popup-content">
+                <h3>Notification</h3>
+                <p>{message}</p>
+                <button onClick={onClose}>Close</button>
+            </div>
+        </div>
+    );
+};
+
 export const ProfilePage = () => {
     const { isDarkMode, toggleTheme } = useTheme();
     const { isSoundEnabled, toggleSound } = useSound();
@@ -26,6 +51,10 @@ export const ProfilePage = () => {
     const [showPfpSelector, setShowPfpSelector] = useState(false);
     const [selectedPfp, setSelectedPfp] = useState(null);
     const [currentPfp, setCurrentPfp] = useState(null);
+    const [showPopup, setShowPopup] = useState(false);
+    const [popupMessage, setPopupMessage] = useState("");
+    const [streak, setStreak] = useState({ current: 0, max: 0, status: "none" });
+    const [timeUntilReset, setTimeUntilReset] = useState(null);
     const navigate = useNavigate();
 
     // Array of profile pictures
@@ -104,6 +133,14 @@ export const ProfilePage = () => {
                     if (userData.profile_picture) {
                         setCurrentPfp(userData.profile_picture);
                     }
+                    // Set streak information
+                    if (userData.current_streak !== undefined) {
+                        setStreak(prev => ({
+                            ...prev,
+                            current: userData.current_streak,
+                            max: userData.max_streak || 0
+                        }));
+                    }
                 } else if (userData && userData.user && userData.user.first_name) {
                     setFirstName(userData.user.first_name);
                     setUserId(userData.user.user_id);
@@ -111,22 +148,111 @@ export const ProfilePage = () => {
                     if (userData.user.profile_picture) {
                         setCurrentPfp(userData.user.profile_picture);
                     }
+                    // Set streak information
+                    if (userData.user.current_streak !== undefined) {
+                        setStreak(prev => ({
+                            ...prev,
+                            current: userData.user.current_streak,
+                            max: userData.user.max_streak || 0
+                        }));
+                    }
                 }
+
+                // Fetch detailed streak information
+                await fetchStreakData(token);
             } catch (error) {
                 console.error("Error fetching user data:", error);
             } finally {
                 setLoading(false);
             }
-                
         };
         
         fetchUserData();
+
+        // Set up interval to update time until reset
+        const intervalId = setInterval(() => {
+            if (timeUntilReset && timeUntilReset > 1000) {
+                setTimeUntilReset(prev => prev - 1000);
+            } else if (timeUntilReset && timeUntilReset <= 1000) {
+                // Time's up, refresh streak data
+                const token = localStorage.getItem("token");
+                if (token) fetchStreakData(token);
+            }
+        }, 1000);
+
+        return () => clearInterval(intervalId);
     }, []);
+
+    const fetchStreakData = async (token) => {
+        try {
+            const response = await fetch("http://localhost:8000/api/user/streak", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                credentials: "include"
+            });
+            
+            if (!response.ok) {
+                throw new Error("Failed to fetch streak data");
+            }
+            
+            const streakData = await response.json();
+            console.log("Streak data:", streakData);
+            
+            setStreak(prev => ({
+                ...prev,
+                current: streakData.current_streak,
+                max: streakData.max_streak,
+                status: streakData.streak_status
+            }));
+            
+            if (streakData.time_until_reset) {
+                setTimeUntilReset(streakData.time_until_reset);
+            }
+        } catch (error) {
+            console.error("Error fetching streak data:", error);
+        }
+    };
+
+    // Format time until reset in a readable format
+    const formatTimeUntilReset = () => {
+        if (!timeUntilReset) return "";
+        
+        const hours = Math.floor(timeUntilReset / (1000 * 60 * 60));
+        const minutes = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60));
+        
+        return `${hours}h ${minutes}m`;
+    };
+
+    // Helper to get streak status message
+    const getStreakMessage = () => {
+        switch(streak.status) {
+            case "active":
+                return "You've completed a lesson today! Come back tomorrow to continue your streak.";
+            case "at_risk":
+                return `Your streak will reset in ${formatTimeUntilReset()}. Complete a lesson to maintain it!`;
+            case "broken":
+                return "Your streak has been reset. Complete a lesson today to start a new streak!";
+            default:
+                return "Complete a lesson today to start your streak!";
+        }
+    };
+
+    // Function to show popup
+    const displayPopup = (message) => {
+        setPopupMessage(message);
+        setShowPopup(true);
+    };
 
     const updateProfilePicture = async (pfpId) => {
         try {
             const token = localStorage.getItem("token");
-            if (!token) return;
+            if (!token) {
+                displayPopup("You must be logged in to update your profile picture");
+                return;
+            }
 
             const response = await fetch("http://localhost:8000/api/user/setPfp", {
                 method: "POST",
@@ -148,8 +274,10 @@ export const ProfilePage = () => {
             setCurrentPfp(pfpId);
             setShowPfpSelector(false);
             setSelectedPfp(null);
+            displayPopup("Profile picture updated successfully!");
         } catch (error) {
             console.error("Error updating profile picture:", error);
+            displayPopup("Failed to update profile picture. Please try again.");
         }
     };
 
@@ -184,7 +312,7 @@ export const ProfilePage = () => {
     const user = {
         name: firstName,
         xp: 850,
-        streak: 7,
+        streak: streak.current,
         level: "B1",
         avatar: firstName.charAt(0).toUpperCase(),
         completedLessons: 58,
@@ -197,11 +325,22 @@ export const ProfilePage = () => {
 
     return (
         <div className="profile-container">
+            {showPopup && (
+                <Popup
+                    message={popupMessage}
+                    onClose={() => setShowPopup(false)}
+                />
+            )}
+            
             <nav className="nav-bar">
-            <Link to="/home" className="logo">Wave!</Link>
+            <Link to="/home" className="logo">
+                <div className="navbar-logo">
+                    <img src={logo} alt="Wave ASL Tutor" />
+                    <span>Wave!</span>
+                </div>
+            </Link>
         <div className="user-profile">
-          <span className="xp">🌟 850 XP</span>
-          <div className="streak">🔥 7-day streak</div>
+          <div className="streak">🔥 {streak.current}-day streak</div>
         </div>
         <div className="nav-right">
           <Link to="/profile" className="profile-link">
@@ -249,18 +388,57 @@ export const ProfilePage = () => {
                             <p>65% of daily goal</p>
                         </div>
                         
-                        <div className="stats-grid">
-                            <div className="stat-item">
-                                <span className="stat-value">{user.xp}</span>
-                                <span className="stat-label">Total XP</span>
+                        <div className="streak-tracker">
+                            <div className="streak-header">
+                                <div className="streak-title">
+                                    <span className="streak-flame">🔥</span>
+                                    <h3>Current Streak: {streak.current} days</h3>
+                                    {streak.max > 0 && streak.max > streak.current && (
+                                        <span className="max-streak">Best: {streak.max}</span>
+                                    )}
+                                </div>
+                                {streak.status === 'at_risk' && (
+                                    <span className="streak-timer">
+                                        Resets in: {formatTimeUntilReset()}
+                                    </span>
+                                )}
                             </div>
-                            <div className="stat-item">
-                                <span className="stat-value">{user.streak}</span>
-                                <span className="stat-label">Day Streak</span>
-                            </div>
-                            <div className="stat-item">
-                                <span className="stat-value">{user.completedLessons}</span>
-                                <span className="stat-label">Lessons</span>
+                            
+                            <div className="streak-days">
+                                {/* Generate the 7 day tracker */}
+                                {Array.from({ length: 7 }).map((_, index) => {
+                                    // Calculate if this day is part of the current streak
+                                    const dayOffset = index - 6; // -6 to 0, with 0 being today
+                                    const isToday = dayOffset === 0;
+                                    const isPast = dayOffset < 0;
+                                    
+                                    // Determine the day's status
+                                    let dayStatus = 'empty';
+                                    if (isPast && Math.abs(dayOffset) < streak.current) {
+                                        dayStatus = 'completed';
+                                    } else if (isToday && streak.status === 'active') {
+                                        dayStatus = 'completed';
+                                    } else if (isToday) {
+                                        dayStatus = 'current';
+                                    }
+                                    
+                                    // Get day of week name
+                                    const date = new Date();
+                                    date.setDate(date.getDate() + dayOffset);
+                                    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                                    
+                                    return (
+                                        <div 
+                                            key={index} 
+                                            className={`streak-day ${dayStatus} ${isToday ? 'today' : ''}`}
+                                        >
+                                            <div className="day-circle">
+                                                <span className="flame-icon">🔥</span>
+                                            </div>
+                                            <span className="day-name">{dayName}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

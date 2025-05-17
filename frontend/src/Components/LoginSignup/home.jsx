@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useTheme } from "./ThemeContext";
 import "./home.css";
+import "./LoginSignup.css"; // Import shared styles
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Footer } from "./Footer";
-
+import logo from "../Assets/imageedit_7_3337107561.png";
 // Popup notification component
 const Popup = ({ message, type, onClose }) => {
   const isSuccess = type === "success";
@@ -35,6 +36,8 @@ export const Home = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
   const [popupType, setPopupType] = useState("error"); // "error" or "success"
+  // Add streak state
+  const [streak, setStreak] = useState({ current: 0, max: 0, status: "none" });
 
 
   useEffect(() => {
@@ -84,6 +87,35 @@ export const Home = () => {
     setPopupMessage(message);
     setPopupType(type);
     setShowPopup(true);
+  };
+
+  // Function to fetch user streak data
+  const fetchStreakData = async (token) => {
+    try {
+      const response = await fetch("http://localhost:8000/api/user/streak", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        credentials: "include"
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch streak data");
+      }
+      
+      const streakData = await response.json();
+      console.log("Streak data:", streakData);
+      
+      setStreak({
+        current: streakData.current_streak || 0,
+        max: streakData.max_streak || 0,
+        status: streakData.streak_status || "none"
+      });
+    } catch (error) {
+      console.error("Error fetching streak data:", error);
+    }
   };
 
   const handleEnroll = async (courseId) => {
@@ -244,20 +276,41 @@ export const Home = () => {
             // Check if userData has direct first_name property or nested in a user object
             if (userData && userData.first_name) {
                 setFirstName(userData.first_name);
+                
+                // Set streak information if available
+                if (userData.current_streak !== undefined) {
+                    setStreak(prev => ({
+                        ...prev,
+                        current: userData.current_streak,
+                        max: userData.max_streak || 0
+                    }));
+                }
             } else if (userData && userData.user && userData.user.first_name) {
                 setFirstName(userData.user.first_name);
+                
+                // Set streak information if available
+                if (userData.user.current_streak !== undefined) {
+                    setStreak(prev => ({
+                        ...prev,
+                        current: userData.user.current_streak,
+                        max: userData.user.max_streak || 0
+                    }));
+                }
             }
+            
+            // Fetch detailed streak data
+            await fetchStreakData(token);
         } catch (error) {
             console.error("Error fetching user data:", error);
         }
     };
     
     fetchUserData();
-}, []);
+  }, []);
 
-const user = {
-  name: firstName,
-}
+  const user = {
+    name: firstName,
+  }
 
   // Function to fetch courses
   const fetchCourses = async () => {
@@ -364,10 +417,14 @@ const user = {
   return (
     <div>
       <nav className="nav-bar">
-        <div className="logo">Wave!</div>
+        <div className="logo">
+          <div className="navbar-logo">
+            <img src={logo} alt="Wave ASL Tutor" />
+            <span>Wave!</span>
+          </div>
+        </div>
         <div className="user-profile">
-          <span className="xp">🌟 850 XP</span>
-          <div className="streak">🔥 7-day streak</div>
+          <div className="streak">🔥 {streak.current}-day streak</div>
         </div>
         <div className="nav-right">
           <Link to="/profile" className="profile-link">

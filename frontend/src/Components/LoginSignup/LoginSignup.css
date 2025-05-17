@@ -1,5 +1,8 @@
+/* Import modern fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 *{
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Poppins', sans-serif;
     box-sizing: border-box;
 }
 
@@ -28,7 +31,7 @@
 .text{
     color: #00aaff;
     font-size: 32px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.5px;
 }
 
@@ -112,10 +115,9 @@
     height: 50px;
     border-radius: 50px;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
     background: var(--gradient-primary) !important;
     color: #fff !important;
@@ -210,44 +212,30 @@ body {
     color: var(--secondary-text);
 }
 
-/* Add theme toggle button styles */
-.theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--container-bg);
-    border: none;
-    padding: 10px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    color: var(--text-color);
-    transition: all 0.3s ease;
-}
-
-
-.theme-toggle:hover {
-    transform: scale(1.05);
-}
+/* Theme toggle is handled in other components */
 
 /* Popup Styles */
 .popup-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  opacity: 0;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
   animation: fadeIn 0.3s ease forwards;
+  margin: 0;
+  padding: 0;
+}
+
+body.popup-active {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 @keyframes fadeIn {
@@ -261,7 +249,7 @@ body {
 
 .popup-content {
   background-color: var(--container-bg);
-  padding: 20px;
+  padding: 25px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   max-width: 400px;
@@ -269,6 +257,17 @@ body {
   text-align: center;
   transform: scale(0.8);
   animation: scaleIn 0.3s ease forwards;
+  border-top: 5px solid #ff4444;
+  margin: 0 auto;
+  position: relative;
+}
+
+.popup-content.success {
+  border-top: 5px solid #4CAF50;
+}
+
+.popup-content.error {
+  border-top: 5px solid #ff4444;
 }
 
 @keyframes scaleIn {
@@ -287,6 +286,14 @@ body {
   margin-bottom: 15px;
   font-size: 20px;
   animation: slideDown 0.3s ease forwards;
+}
+
+.popup-content.success h3 {
+  color: #4CAF50;
+}
+
+.popup-content.error h3 {
+  color: #ff4444;
 }
 
 @keyframes slideDown {
@@ -321,10 +328,10 @@ body {
 }
 
 .popup-content button {
-  background-color: var(--button-bg);
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 10px 25px;
   border-radius: 25px;
   cursor: pointer;
   font-size: 16px;
@@ -335,9 +342,17 @@ body {
   opacity: 0;
 }
 
+.popup-content button.success-btn {
+  background: var(--gradient-success);
+}
+
+.popup-content button.error-btn {
+  background: var(--gradient-danger);
+}
+
 .popup-content button:hover {
-  background-color: var(--button-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .login-button,
@@ -389,5 +404,74 @@ body {
   to {
     opacity: 0;
     transform: translateX(-50px);
+  }
+}
+
+/* Make sure the root HTML and body cover the full viewport */
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.message {
+  text-align: center;
+  margin: 15px 0;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+/* Loading Styles - Centralized for all components */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+  background: var(--background-color);
+  overflow: hidden;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1.5rem;
+  position: relative;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+
+.loading-spinner:after {
+  content: " ";
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 6px solid var(--primary-color);
+  border-color: var(--primary-color) transparent var(--primary-color) transparent;
+  animation: loading-spinner 1.2s linear infinite;
+}
+
+.loading-text {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-top: 1rem;
+}
+
+@keyframes loading-spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }

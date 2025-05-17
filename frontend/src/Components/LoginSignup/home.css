@@ -220,12 +220,7 @@ body {
   }
 }
 
-.switch{
-  position: -webkit-sticky;
-  position: sticky;
-  top: 100px;
-  z-index: 9999;
-}
+/* Removed unused .switch class */
 /* Add this to ensure full background coverage */
 
 body, .home-container {
@@ -308,61 +303,7 @@ body, .home-container {
   color: white;
 }
 
-/* Remove the .switch class if no longer needed */
-.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
-  text-align: center;
-}
-
-.loading-spinner {
-  display: inline-block;
-  width: 80px;
-  height: 80px;
-  margin-bottom: 1.5rem;
-  animation: pulse 1.5s ease-in-out infinite;
-
-}
-
-.loading-spinner:after {
-  content: " ";
-  display: block;
-  width: 64px;
-  height: 64px;
-  margin: 8px;
-  border-radius: 50%;
-  border: 6px solid var(--primary-color);
-  border-color: var(--primary-color) transparent var(--primary-color) transparent;
-  animation: loading-spinner 1.2s linear infinite;
-}
-
-.loading-text {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-@keyframes loading-spinner {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
+/* Loading styles are imported from LoginSignup.css */
 
 .error {
   padding: 2rem;
@@ -455,136 +396,7 @@ body, .home-container {
   background-color: #FF9800;
 }
 
-/* Popup Notification Styles */
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  opacity: 0;
-  animation: fadeIn 0.3s ease forwards;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.popup-content {
-  background-color: var(--container-bg);
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
-  width: 90%;
-  text-align: center;
-  transform: scale(0.8);
-  animation: scaleIn 0.3s ease forwards;
-  border-top: 5px solid #ff4444;
-}
-
-.popup-content.success {
-  border-top: 5px solid #4CAF50;
-}
-
-.popup-content.error {
-  border-top: 5px solid #ff4444;
-  background-color: var(--container-bg);
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.popup-content h3 {
-  margin-bottom: 15px;
-  font-size: 22px;
-  animation: slideDown 0.3s ease forwards;
-}
-
-.popup-content.success h3 {
-  color: #4CAF50;
-}
-
-.popup-content.error h3 {
-  color: #ff4444;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.popup-content p {
-  color: var(--text-color);
-  margin-bottom: 20px;
-  font-size: 16px;
-  animation: slideUp 0.3s ease forwards;
-  animation-delay: 0.1s;
-  opacity: 0;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.popup-content button {
-  background: var(--gradient-primary);
-  color: white;
-  border: none;
-  padding: 10px 25px;
-  border-radius: 25px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  animation: fadeIn 0.3s ease forwards;
-  animation-delay: 0.2s;
-  opacity: 0;
-}
-
-.popup-content button.success-btn {
-  background: var(--gradient-success);
-}
-
-.popup-content button.error-btn {
-  background: var(--gradient-danger);
-}
-
-.popup-content button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
+/* Popup styles are imported from LoginSignup.css */
 
 /* Enrolled Courses Section */
 .enrolled-courses {
@@ -646,4 +458,30 @@ body, .home-container {
   .enrolled-courses {
     grid-template-columns: 1fr;
   }
+}
+.navbar-logo {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-logo img {
+  height: 40px;
+  margin-right: 0.5rem;
+}
+
+.navbar-logo span {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.navbar-logo img {
+  height: 32px;
+}
+
+.navbar-logo span {
+  font-size: 1.3rem;
 }

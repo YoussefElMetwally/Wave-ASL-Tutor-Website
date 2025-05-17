@@ -1,5 +1,6 @@
 const Enrollment = require("../models/enrollmentModel");
 const Course = require("../models/courseModel");
+const User = require("../models/userModel");
 
 exports.incrementCompletedLessons = async (req, res) => {
   try {
@@ -49,19 +50,124 @@ exports.incrementCompletedLessons = async (req, res) => {
       enrollment.completion_date = new Date();
     }
 
-    // Step 5: Save changes
+    // Step 5: Update user streak if a new lesson was completed
+    if (!lessonAlreadyCompleted) {
+      await updateUserStreak(user_id);
+    }
+
+    // Step 6: Save changes
     await enrollment.save();
+
+    // Get updated user information including streak
+    const user = await User.findOne({ user_id });
+    const streakInfo = {
+      current_streak: user.current_streak,
+      max_streak: user.max_streak
+    };
 
     res.status(200).json({
       message: "Completed lessons updated successfully",
       progress: enrollment.progress_percentage,
-      lessonWasCounted: !lessonAlreadyCompleted
+      lessonWasCounted: !lessonAlreadyCompleted,
+      streak: streakInfo
     });
   } catch (error) {
     console.error("Error updating completed lessons:", error.message);
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+// Helper function to update user streak
+async function updateUserStreak(user_id) {
+  try {
+    const user = await User.findOne({ user_id });
+    if (!user) return;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Check if streak was already updated today
+    if (user.streak_updated_today) {
+      const lastActivityDate = new Date(user.last_activity_date);
+      const lastActivityDay = new Date(
+        lastActivityDate.getFullYear(),
+        lastActivityDate.getMonth(),
+        lastActivityDate.getDate()
+      );
+      
+      // If already updated today, just return
+      if (today.getTime() === lastActivityDay.getTime()) {
+        return;
+      }
+    }
+    
+    if (!user.last_activity_date) {
+      // First activity - start streak at 1
+      user.current_streak = 1;
+      user.max_streak = 1;
+    } else {
+      const lastActivityDate = new Date(user.last_activity_date);
+      const lastActivityDay = new Date(
+        lastActivityDate.getFullYear(),
+        lastActivityDate.getMonth(),
+        lastActivityDate.getDate()
+      );
+      
+      // Calculate the difference in days
+      const timeDiff = today.getTime() - lastActivityDay.getTime();
+      const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+      
+      if (dayDiff === 1) {
+        // Activity on consecutive day - increment streak
+        user.current_streak += 1;
+        if (user.current_streak > user.max_streak) {
+          user.max_streak = user.current_streak;
+        }
+      } else if (dayDiff === 0) {
+        // Already counted for today
+        return;
+      } else {
+        // Streak broken - reset to 1
+        user.current_streak = 1;
+      }
+    }
+    
+    // Update user's last activity date and mark as updated today
+    user.last_activity_date = now;
+    user.streak_updated_today = true;
+    
+    // Save user with updated streak
+    await user.save();
+    
+    // Schedule reset of streak_updated_today flag for midnight
+    scheduleStreakFlagReset(user_id);
+    
+  } catch (error) {
+    console.error("Error updating user streak:", error);
+  }
+}
+
+// Reset the streak_updated_today flag at midnight
+function scheduleStreakFlagReset(user_id) {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  
+  const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+  
+  setTimeout(async () => {
+    try {
+      const user = await User.findOne({ user_id });
+      if (user) {
+        user.streak_updated_today = false;
+        await user.save();
+      }
+    } catch (error) {
+      console.error("Error resetting streak flag:", error);
+    }
+  }, timeUntilMidnight);
+}
 
 exports.getEnrollments = async (req, res) => {
   try {

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../LoginSignup/ThemeContext";
 import "./Course.css";
+import "../LoginSignup/LoginSignup.css"; // Import shared styles
 import closeIcon from '../Assets/close.png'; // Import the close icon
 
 export const CourseDetails = () => {

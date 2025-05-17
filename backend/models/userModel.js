@@ -23,6 +23,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "../src/profilePictures/default_pfp.jpeg",
   },
+  // Streak tracking fields
+  current_streak: { type: Number, default: 0 },
+  max_streak: { type: Number, default: 0 },
+  last_activity_date: { type: Date },
+  streak_updated_today: { type: Boolean, default: false }
 });
 
 userSchema.pre("save", async function (next) {

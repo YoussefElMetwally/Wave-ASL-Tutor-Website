@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "../LoginSignup/ThemeContext";
 import { useSound } from "../LoginSignup/SoundContext";
 import "./Course.css";
+import "../LoginSignup/LoginSignup.css"; // Import shared styles
 import closeIcon from '../Assets/close.png'; // Import the close icon
 // Import MediaPipe Hands library and utilities
 import { Hands } from "@mediapipe/hands";

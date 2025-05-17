@@ -17,6 +17,7 @@ const {
   resetPassword,
   getCurrentCourse,
   setPfp,
+  getUserStreak,
 } = require("../controllers/userController");
 const {
   getCourses,
@@ -52,8 +53,9 @@ router.post("/api/reset-password", resetPassword);
 router.post("/api/user/enroll", checkLogin, enroll);
 router.put("/api/user/updateData", updateUserData);
 router.get("/api/user/profile", checkLogin, getUserData);
-router.get("api/user/getCurrentCourse", checkLogin, getCurrentCourse);
+router.get("/api/user/getCurrentCourse", checkLogin, getCurrentCourse);
 router.post("/api/user/setPfp", checkLogin, setPfp);
+router.get("/api/user/streak", checkLogin, getUserStreak);
 
 // Enrollement routes
 router.get("/api/enrollment/getEnrollments", checkLogin, getEnrollments);

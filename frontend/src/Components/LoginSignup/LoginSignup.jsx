@@ -6,13 +6,25 @@ import user_icon from '../Assets/user (1).png';
 import email_icon from '../Assets/email.png';
 import password_icon from '../Assets/locked-computer.png';
 
-const Popup = ({ message, onClose }) => {
+const Popup = ({ message, onClose, type = "error" }) => {
+  // Add popup-active class to body when component mounts
+  React.useEffect(() => {
+    document.body.classList.add('popup-active');
+    
+    // Remove class when component unmounts
+    return () => {
+      document.body.classList.remove('popup-active');
+    };
+  }, []);
+
+  const isSuccess = type === "success";
+
   return (
     <div className="popup-overlay">
-      <div className="popup-content">
-        <h3>Error</h3>
+      <div className={`popup-content ${isSuccess ? 'success' : 'error'}`}>
+        <h3>{isSuccess ? "Success" : "Error"}</h3>
         <p>{message}</p>
-        <button onClick={onClose}>Close</button>
+        <button onClick={onClose} className={isSuccess ? "success-btn" : "error-btn"}>Close</button>
       </div>
     </div>
   );
@@ -31,6 +43,7 @@ export const LoginSignup = () => {
   const [message, setMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState("");
   const [isRequestingReset, setIsRequestingReset] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -46,6 +59,7 @@ export const LoginSignup = () => {
     if (!formData.email) {
       setPopupMessage("Please enter your email address");
       setShowPopup(true);
+      setPopupType("error");
       return;
     }
 
@@ -70,11 +84,13 @@ export const LoginSignup = () => {
       } else {
         setPopupMessage(data.message || "Failed to request password reset");
         setShowPopup(true);
+        setPopupType("error");
       }
     } catch (error) {
       console.error("Password reset request failed:", error);
       setPopupMessage("An error occurred. Please try again.");
       setShowPopup(true);
+      setPopupType("error");
     }
   };
 
@@ -102,6 +118,7 @@ export const LoginSignup = () => {
       if (data.status === 400) {
         setPopupMessage(data.message);
         setShowPopup(true);
+        setPopupType("error");
         return;
       }
   
@@ -117,6 +134,7 @@ export const LoginSignup = () => {
       console.error("API request failed:", error);
       setPopupMessage("An error occurred. Please try again.");
       setShowPopup(true);
+      setPopupType("error");
     }
   };
 
@@ -138,117 +156,123 @@ export const LoginSignup = () => {
 
   if (isRequestingReset) {
     return (
-      <div className={`container ${isTransitioning ? 'slide-out' : 'slide-in'}`}>
+      <>
         {showPopup && (
           <Popup 
             message={popupMessage} 
-            onClose={() => setShowPopup(false)} 
+            onClose={() => setShowPopup(false)}
+            type={popupType || "error"} 
           />
         )}
-        <div className='header'>
-          <div className='text'>Reset Password</div>
-          <div className='underline'></div>
+        <div className={`container ${isTransitioning ? 'slide-out' : 'slide-in'}`}>
+          <div className='header'>
+            <div className='text'>Reset Password</div>
+            <div className='underline'></div>
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); handleRequestReset(); }} className="inputs">
+            <div className="input">
+              <img src={email_icon} alt="" />
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            {message && <div className="message">{message}</div>}
+            <div className="submit-container">
+              <button type="submit" className="submit" style={{width: 200}}>
+                Reset Password
+              </button>
+            </div>
+            <div className="forgot-password" style={{ textAlign: 'center', marginTop: '20px' }}>
+              <span onClick={handleBackToLogin} style={{ cursor: 'pointer' }}>
+                Back to Login
+              </span>
+            </div>
+          </form>
         </div>
-        <form onSubmit={(e) => { e.preventDefault(); handleRequestReset(); }} className="inputs">
-          <div className="input">
-            <img src={email_icon} alt="" />
-            <input
-              type="email"
-              name="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          {message && <div className="message">{message}</div>}
-          <div className="submit-container">
-            <button type="submit" className="submit" style={{width: 200}}>
-              Reset Password
-            </button>
-          </div>
-          <div className="forgot-password" style={{ textAlign: 'center', marginTop: '20px' }}>
-            <span onClick={handleBackToLogin} style={{ cursor: 'pointer' }}>
-              Back to Login
-            </span>
-          </div>
-        </form>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className={`container ${isTransitioning ? 'slide-out' : 'slide-in'}`}>
+    <>
       {showPopup && (
         <Popup 
           message={popupMessage} 
-          onClose={() => setShowPopup(false)} 
+          onClose={() => setShowPopup(false)}
+          type={popupType || "error"} 
         />
       )}
-      <div className='header'>
-        <div className='text'>{action}</div>
-        <div className='underline'></div>
-      </div>
-      <div className="option-container">
-        <div className={action === "Login" ? "submit gray" : "submit"} 
-             onClick={() => setAction("Sign Up")}>
-          Sign Up
+      <div className={`container ${isTransitioning ? 'slide-out' : 'slide-in'}`}>
+        <div className='header'>
+          <div className='text'>{action}</div>
+          <div className='underline'></div>
         </div>
-        <div className={action === "Sign Up" ? "submit gray" : "submit"} 
-             onClick={() => setAction("Login")}>
-          Login
-        </div>
-      </div>
-      
-      <form onSubmit={handleSubmit} className="inputs">
-        {action === "Login" ? null : (
-          <>
-            <div className="input">
-              <img src={user_icon} alt="" />
-              <input type="text" 
-                     name="firstName" 
-                     placeholder='First Name' 
-                     value={formData.firstName} 
-                     onChange={handleChange} />
-            </div>
-            <div className="input">
-              <img src={user_icon} alt="" />
-              <input type="text" 
-                     name="lastName" 
-                     placeholder='Last Name' 
-                     value={formData.lastName} 
-                     onChange={handleChange} />
-            </div>
-          </>
-        )}
-        <div className="input">
-          <img src={email_icon} alt="" />
-          <input type="email" 
-                 name="email" 
-                 placeholder='Email' 
-                 value={formData.email} 
-                 onChange={handleChange} />
-        </div>
-        <div className="input">
-          <img src={password_icon} alt="" />
-          <input type="password" 
-                 name="password" 
-                 placeholder='Password' 
-                 value={formData.password} 
-                 onChange={handleChange} />
-        </div>
-        {action === "Login" && (
-          <div className="forgot-password">
-            Lost Password? <span onClick={handleResetClick}>Click Here!</span>
+        <div className="option-container">
+          <div className={action === "Login" ? "submit gray" : "submit"} 
+                onClick={() => setAction("Sign Up")}>
+            Sign Up
           </div>
-        )}
-        {message && <div className="message">{message}</div>}
-        <div className="submit-container">
-          <button type="submit" className="submit">
-            {action}
-          </button>
+          <div className={action === "Sign Up" ? "submit gray" : "submit"} 
+                onClick={() => setAction("Login")}>
+            Login
+          </div>
         </div>
-      </form>
-    </div>
+        
+        <form onSubmit={handleSubmit} className="inputs">
+          {action === "Login" ? null : (
+            <>
+              <div className="input">
+                <img src={user_icon} alt="" />
+                <input type="text" 
+                        name="firstName" 
+                        placeholder='First Name' 
+                        value={formData.firstName} 
+                        onChange={handleChange} />
+              </div>
+              <div className="input">
+                <img src={user_icon} alt="" />
+                <input type="text" 
+                        name="lastName" 
+                        placeholder='Last Name' 
+                        value={formData.lastName} 
+                        onChange={handleChange} />
+              </div>
+            </>
+          )}
+          <div className="input">
+            <img src={email_icon} alt="" />
+            <input type="email" 
+                    name="email" 
+                    placeholder='Email' 
+                    value={formData.email} 
+                    onChange={handleChange} />
+          </div>
+          <div className="input">
+            <img src={password_icon} alt="" />
+            <input type="password" 
+                    name="password" 
+                    placeholder='Password' 
+                    value={formData.password} 
+                    onChange={handleChange} />
+          </div>
+          {action === "Login" && (
+            <div className="forgot-password">
+              Lost Password? <span onClick={handleResetClick}>Click Here!</span>
+            </div>
+          )}
+          {message && <div className="message">{message}</div>}
+          <div className="submit-container">
+            <button type="submit" className="submit">
+              {action}
+            </button>
+          </div>
+        </form>
+      </div>
+    </>
   );
 };
