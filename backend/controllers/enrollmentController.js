@@ -14,14 +14,15 @@ exports.incrementCompletedLessons = async (req, res) => {
       throw new Error("Enrollment not found");
     }
 
-    // Initialize completedLessonsArray if it doesn't exist
+    // Initialize completed_lessons_id if it doesn't exist
     if (!enrollment.completed_lessons_id) {
       enrollment.completed_lessons_id = [];
     }
 
     // Check if this lesson has already been completed
-    const lessonAlreadyCompleted = enrollment.completed_lessons_id.includes(lesson_id);
-    
+    const lessonAlreadyCompleted =
+      enrollment.completed_lessons_id.includes(lesson_id);
+
     // Only increment and add to the array if the lesson hasn't been completed before
     if (!lessonAlreadyCompleted) {
       // Step 2: Increment completed lessons

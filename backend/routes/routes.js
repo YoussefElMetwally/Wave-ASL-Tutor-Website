@@ -41,6 +41,7 @@ const {
   incrementCompletedLessons,
   getEnrollments,
 } = require("../controllers/enrollmentController");
+const { TTS } = require("../controllers/huggingfaceController");
 
 // User authentication routes
 router.post("/api/logout", logout);
@@ -89,5 +90,8 @@ router.post("/api/classify", checkLogin, classify);
 // database population
 router.post("/api/lesson/create", createLesson);
 //router.post("/api/test/create", createTest);
+
+// huggingface routes
+router.post("/api/aslts", checkLogin, TTS);
 
 module.exports = router;
