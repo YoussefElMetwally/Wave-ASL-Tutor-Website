@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './profile.css';
 import './LoginSignup.css';
 import { Footer } from './Footer';
+import { StreakPopup } from './StreakPopup';
 import logo from "../Assets/imageedit_7_3337107561.png";
 
 // Import the profile pictures
@@ -53,8 +54,14 @@ export const ProfilePage = () => {
     const [currentPfp, setCurrentPfp] = useState(null);
     const [showPopup, setShowPopup] = useState(false);
     const [popupMessage, setPopupMessage] = useState("");
-    const [streak, setStreak] = useState({ current: 0, max: 0, status: "none" });
+    const [streak, setStreak] = useState({
+        current: 0,
+        max: 0,
+        status: 'inactive',
+        completedDays: []
+    });
     const [timeUntilReset, setTimeUntilReset] = useState(null);
+    const [showStreakPopup, setShowStreakPopup] = useState(false);
     const navigate = useNavigate();
 
     // Array of profile pictures
@@ -205,7 +212,8 @@ export const ProfilePage = () => {
                 ...prev,
                 current: streakData.current_streak,
                 max: streakData.max_streak,
-                status: streakData.streak_status
+                status: streakData.streak_status,
+                completedDays: streakData.completed_days || []
             }));
             
             if (streakData.time_until_reset) {
@@ -226,18 +234,9 @@ export const ProfilePage = () => {
         return `${hours}h ${minutes}m`;
     };
 
-    // Helper to get streak status message
-    const getStreakMessage = () => {
-        switch(streak.status) {
-            case "active":
-                return "You've completed a lesson today! Come back tomorrow to continue your streak.";
-            case "at_risk":
-                return `Your streak will reset in ${formatTimeUntilReset()}. Complete a lesson to maintain it!`;
-            case "broken":
-                return "Your streak has been reset. Complete a lesson today to start a new streak!";
-            default:
-                return "Complete a lesson today to start your streak!";
-        }
+    // Function to toggle streak popup
+    const toggleStreakPopup = () => {
+        setShowStreakPopup(!showStreakPopup);
     };
 
     // Function to show popup
@@ -340,7 +339,9 @@ export const ProfilePage = () => {
                 </div>
             </Link>
         <div className="user-profile">
-          <div className="streak">🔥 {streak.current}-day streak</div>
+          <div className="streak" onClick={toggleStreakPopup}>
+            🔥 {streak.current}-day streak
+          </div>
         </div>
         <div className="nav-right">
           <Link to="/profile" className="profile-link">
@@ -359,6 +360,15 @@ export const ProfilePage = () => {
           </button>
         </div>
       </nav>
+
+            {/* Replace the existing streak popup with the new component */}
+            <StreakPopup
+                isOpen={showStreakPopup}
+                onClose={toggleStreakPopup}
+                streak={streak}
+                timeUntilReset={timeUntilReset}
+                onContinueLearning={() => navigate('/home')}
+            />
 
             <main className="profile-content">
                 <section className="profile-header">

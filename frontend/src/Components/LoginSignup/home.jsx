@@ -4,6 +4,7 @@ import "./home.css";
 import "./LoginSignup.css"; // Import shared styles
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Footer } from "./Footer";
+import { StreakPopup } from './StreakPopup';
 import logo from "../Assets/imageedit_7_3337107561.png";
 // Popup notification component
 const Popup = ({ message, type, onClose }) => {
@@ -38,7 +39,19 @@ export const Home = () => {
   const [popupType, setPopupType] = useState("error"); // "error" or "success"
   // Add streak state
   const [streak, setStreak] = useState({ current: 0, max: 0, status: "none" });
-
+  // Add state for streak details popup
+  const [showStreakPopup, setShowStreakPopup] = useState(false);
+  const [timeUntilReset, setTimeUntilReset] = useState(null);
+  
+  // Format time until reset in a readable format
+  const formatTimeUntilReset = () => {
+    if (!timeUntilReset) return "24h 0m";
+    
+    const hours = Math.floor(timeUntilReset / (1000 * 60 * 60));
+    const minutes = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hours}h ${minutes}m`;
+  };
 
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
@@ -113,6 +126,10 @@ export const Home = () => {
         max: streakData.max_streak || 0,
         status: streakData.streak_status || "none"
       });
+      
+      if (streakData.time_until_reset) {
+        setTimeUntilReset(streakData.time_until_reset);
+      }
     } catch (error) {
       console.error("Error fetching streak data:", error);
     }
@@ -306,6 +323,19 @@ export const Home = () => {
     };
     
     fetchUserData();
+    
+    // Set up interval to update time until reset
+    const intervalId = setInterval(() => {
+      if (timeUntilReset && timeUntilReset > 1000) {
+        setTimeUntilReset(prev => prev - 1000);
+      } else if (timeUntilReset && timeUntilReset <= 1000) {
+        // Time's up, refresh streak data
+        const token = localStorage.getItem("token");
+        if (token) fetchStreakData(token);
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const user = {
@@ -414,6 +444,11 @@ export const Home = () => {
   const enrolledCourses = getEnrolledCourses();
   const highlightedCourse = getHighlightedCourse();
 
+  // Function to toggle streak popup
+  const toggleStreakPopup = () => {
+    setShowStreakPopup(!showStreakPopup);
+  };
+
   return (
     <div>
       <nav className="nav-bar">
@@ -424,7 +459,9 @@ export const Home = () => {
           </div>
         </div>
         <div className="user-profile">
-          <div className="streak">🔥 {streak.current}-day streak</div>
+          <div className="streak" onClick={toggleStreakPopup}>
+            🔥 {streak.current}-day streak
+          </div>
         </div>
         <div className="nav-right">
           <Link to="/profile" className="profile-link">
@@ -443,6 +480,14 @@ export const Home = () => {
           </button>
         </div>
       </nav>
+
+      {/* Streak Popup */}
+      <StreakPopup
+        isOpen={showStreakPopup}
+        onClose={toggleStreakPopup}
+        streak={streak}
+        timeUntilReset={timeUntilReset}
+      />
 
       <main className="main-content">
         <div className="header-section">
