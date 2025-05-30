@@ -398,23 +398,23 @@ export const ProfilePage = () => {
                             <p>65% of daily goal</p>
                         </div>
                         
-                        <div className="streak-tracker">
-                            <div className="streak-header">
-                                <div className="streak-title">
-                                    <span className="streak-flame">🔥</span>
+                        <div className="profile-streak-tracker">
+                            <div className="profile-streak-header">
+                                <div className="profile-streak-title">
+                                    <span className="profile-streak-flame">🔥</span>
                                     <h3>Current Streak: {streak.current} days</h3>
                                     {streak.max > 0 && streak.max > streak.current && (
-                                        <span className="max-streak">Best: {streak.max}</span>
+                                        <span className="profile-max-streak">Best: {streak.max}</span>
                                     )}
                                 </div>
                                 {streak.status === 'at_risk' && (
-                                    <span className="streak-timer">
+                                    <span className="profile-streak-timer">
                                         Resets in: {formatTimeUntilReset()}
                                     </span>
                                 )}
                             </div>
                             
-                            <div className="streak-days">
+                            <div className="profile-streak-days">
                                 {/* Generate the 7 day tracker */}
                                 {Array.from({ length: 7 }).map((_, index) => {
                                     // Calculate if this day is part of the current streak
@@ -440,12 +440,12 @@ export const ProfilePage = () => {
                                     return (
                                         <div 
                                             key={index} 
-                                            className={`streak-day ${dayStatus} ${isToday ? 'today' : ''}`}
+                                            className={`profile-streak-day ${dayStatus} ${isToday ? 'today' : ''}`}
                                         >
-                                            <div className="day-circle">
-                                                <span className="flame-icon">🔥</span>
+                                            <div className="profile-day-circle">
+                                                <span className="profile-flame-icon">🔥</span>
                                             </div>
-                                            <span className="day-name">{dayName}</span>
+                                            <span className="profile-day-name">{dayName}</span>
                                         </div>
                                     );
                                 })}

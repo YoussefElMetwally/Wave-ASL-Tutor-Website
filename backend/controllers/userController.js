@@ -394,7 +394,7 @@ exports.getUserStreak = async (req, res) => {
     
     // Calculate time until streak resets
     let timeUntilReset = null;
-    let streakStatus = "active";
+    let streakStatus = "inactive";
     
     if (user.last_activity_date) {
       const lastActivity = new Date(user.last_activity_date);

@@ -252,6 +252,7 @@
 
 .streak-day.current .flame-icon {
     opacity: 1;
+    filter: grayscale(100%) opacity(0.5);
 }
 
 .streak-day.today .day-name {
