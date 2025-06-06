@@ -5,8 +5,9 @@ import { useSound } from "../LoginSignup/SoundContext";
 import "./Course.css";
 import "../LoginSignup/LoginSignup.css"; // Import shared styles
 import closeIcon from '../Assets/close.png'; // Import the close icon
-// Import MediaPipe Hands library and utilities
+// Import MediaPipe libraries and utilities
 import { Hands } from "@mediapipe/hands";
+import { Holistic } from "@mediapipe/holistic";
 import { Camera } from "@mediapipe/camera_utils";
 import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
 
@@ -40,6 +41,7 @@ export const LessonVideo = () => {
   const [savedRecordings, setSavedRecordings] = useState([]);
   // Add refs and state for MediaPipe
   const handsRef = useRef(null);
+  const holisticRef = useRef(null);
   const cameraRef = useRef(null);
   const landmarkFramesRef = useRef([]);
   const recordingIntervalRef = useRef(null);
@@ -57,6 +59,8 @@ export const LessonVideo = () => {
   // Add a state to track feedback display status
   const [feedbackStatus, setFeedbackStatus] = useState(null); // 'correct', 'incorrect', or null
   const [showLessonCompletedPopup, setShowLessonCompletedPopup] = useState(false);
+  // Add state for model type
+  const [modelType, setModelType] = useState('static'); // 'static' or 'dynamic'
 
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
@@ -153,6 +157,10 @@ export const LessonVideo = () => {
             return url;
           });
         }
+
+        // Determine model type based on model_path
+        const isDynamicModel = data.model_path && data.model_path.toLowerCase().includes('dynamic');
+        setModelType(isDynamicModel ? 'dynamic' : 'static');
 
         setLesson(data);
         
@@ -286,140 +294,135 @@ export const LessonVideo = () => {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
 
-        // Initialize MediaPipe Hands
-        if (!handsRef.current) {
-          handsRef.current = new Hands({
-            locateFile: (file) =>
-              `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
-          });
+        // Initialize MediaPipe based on model type
+        if (modelType === 'static') {
+          // Initialize MediaPipe Hands for static model
+          if (!handsRef.current) {
+            try {
+              handsRef.current = new Hands({
+                locateFile: (file) =>
+                  `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+              });
 
-          handsRef.current.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.6, // Lower detection confidence for better capture
-            minTrackingConfidence: 0.5, // Lower tracking confidence
-          });
+              handsRef.current.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.6,
+                minTrackingConfidence: 0.5,
+              });
 
-          handsRef.current.onResults((results) => {
-            // Update hand detection status
-            const hasHand =
-              results.multiHandLandmarks &&
-              results.multiHandLandmarks.length > 0;
-            setHandDetected(hasHand);
+              handsRef.current.onResults((results) => {
+                // Update hand detection status
+                const hasHand =
+                  results.multiHandLandmarks &&
+                  results.multiHandLandmarks.length > 0;
+                setHandDetected(hasHand);
 
-            // Update debug info
-            setDebugInfo((prev) => ({
-              framesProcessed: prev.framesProcessed + 1,
-              landmarksDetected: hasHand
-                ? prev.landmarksDetected + 1
-                : prev.landmarksDetected,
-            }));
+                // Update debug info
+                setDebugInfo((prev) => ({
+                  framesProcessed: prev.framesProcessed + 1,
+                  landmarksDetected: hasHand
+                    ? prev.landmarksDetected + 1
+                    : prev.landmarksDetected,
+                }));
 
-            // Store landmarks if hand is detected and we're recording
-            if ((isRecordingActive || recording) && hasHand) {
-              const landmarks = results.multiHandLandmarks[0];
+                // Store landmarks if hand is detected and we're recording
+                if ((isRecordingActive || recording) && hasHand) {
+                  const landmarks = results.multiHandLandmarks[0];
+                  processLandmarks(landmarks);
+                }
 
-              const width = videoRef.current.videoWidth;
-              const height = videoRef.current.videoHeight;
+                // Draw landmarks on canvas
+                drawLandmarksOnCanvas(results.multiHandLandmarks);
+              });
 
-              // Convert normalized landmarks to pixel space
-              const pixelLandmarks = landmarks.map((l) => [
-                Math.min(Math.floor(l.x * width), width - 1),
-                Math.min(Math.floor(l.y * height), height - 1),
-              ]);
-
-              // Bounding box calculation (min/max coordinates)
-              const xs = pixelLandmarks.map((p) => p[0]);
-              const ys = pixelLandmarks.map((p) => p[1]);
-              const minX = Math.min(...xs);
-              const minY = Math.min(...ys);
-              const maxX = Math.max(...xs);
-              const maxY = Math.max(...ys);
-              const bbox = [minX, minY, maxX, maxY]; // [x, y, x+w, y+h]
-
-              // Normalize landmarks
-              const baseX = pixelLandmarks[0][0];
-              const baseY = pixelLandmarks[0][1];
-              const centered = pixelLandmarks.map(([x, y]) => [
-                x - baseX,
-                y - baseY,
-              ]);
-              const flat = centered.flat();
-
-              // Normalize using the max value from the flattened coordinates
-              const maxVal = Math.max(...flat.map(Math.abs));
-              const normalizedLandmarks =
-                maxVal !== 0 ? flat.map((v) => v / maxVal) : flat;
-
-              // Store normalized landmarks
-              if (normalizedLandmarks.length === 42) {
-                landmarkFramesRef.current.push(normalizedLandmarks);
-              } else {
-                console.warn(
-                  `Invalid landmark count: ${normalizedLandmarks.length}, expected 42`
-                );
-              }
+              console.log('MediaPipe Hands initialized successfully');
+            } catch (error) {
+              console.error('Error initializing MediaPipe Hands:', error);
+              alert('Failed to initialize hand tracking. Please try refreshing the page.');
+              return;
             }
+          }
+        } else {
+          // Initialize MediaPipe Holistic for dynamic model
+          if (!holisticRef.current) {
+            try {
+              holisticRef.current = new Holistic({
+                locateFile: (file) =>
+                  `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`,
+              });
 
-            // Draw landmarks on canvas if we have a canvas reference
-            if (canvasRef.current) {
-              const ctx = canvasRef.current.getContext("2d");
-              if (!ctx) return;
+              holisticRef.current.setOptions({
+                modelComplexity: 1,
+                smoothLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5,
+                refineFaceLandmarks: true,
+              });
 
-              // Clear canvas
-              ctx.clearRect(
-                0,
-                0,
-                canvasRef.current.width,
-                canvasRef.current.height
-              );
+              holisticRef.current.onResults((results) => {
+                // Update hand detection status
+                const hasHand = results.rightHandLandmarks || results.leftHandLandmarks;
+                setHandDetected(hasHand);
 
-              // Draw hand landmarks
-              if (hasHand) {
-                // Make canvas same size as video
-                canvasRef.current.width = videoRef.current.videoWidth;
-                canvasRef.current.height = videoRef.current.videoHeight;
+                // Update debug info
+                setDebugInfo((prev) => ({
+                  framesProcessed: prev.framesProcessed + 1,
+                  landmarksDetected: hasHand
+                    ? prev.landmarksDetected + 1
+                    : prev.landmarksDetected,
+                }));
 
-                // Add these lines to mirror the canvas context for drawing
-                ctx.save();
-                ctx.scale(-1, 1);
-                ctx.translate(-canvasRef.current.width, 0);
+                // Store landmarks if hand is detected and we're recording
+                if ((isRecordingActive || recording) && hasHand) {
+                  // Combine hand landmarks with pose landmarks for full body tracking
+                  const landmarks = {
+                    pose: results.poseLandmarks,
+                    leftHand: results.leftHandLandmarks,
+                    rightHand: results.rightHandLandmarks,
+                  };
+                  processLandmarks(landmarks);
+                }
 
-                // Draw hand connections
-                drawConnectors(
-                  ctx,
-                  results.multiHandLandmarks[0],
-                  Hands.HAND_CONNECTIONS,
-                  { color: "#00FF00", lineWidth: 5 }
-                );
+                // Draw landmarks on canvas
+                drawLandmarksOnCanvas(results);
+              });
 
-                // Draw landmarks
-                drawLandmarks(ctx, results.multiHandLandmarks[0], {
-                  color: "#FF0000",
-                  lineWidth: 2,
-                  radius: 4,
-                });
-
-                // Restore the context to its original state
-                ctx.restore();
-              }
+              console.log('MediaPipe Holistic initialized successfully');
+            } catch (error) {
+              console.error('Error initializing MediaPipe Holistic:', error);
+              alert('Failed to initialize full body tracking. Please try refreshing the page.');
+              return;
             }
-          });
+          }
         }
 
         // Start the camera
         if (!cameraRef.current && videoRef.current) {
-          cameraRef.current = new Camera(videoRef.current, {
-            onFrame: async () => {
-              if (handsRef.current) {
-                await handsRef.current.send({ image: videoRef.current });
-              }
-            },
-            width: 640,
-            height: 480,
-          });
+          try {
+            cameraRef.current = new Camera(videoRef.current, {
+              onFrame: async () => {
+                try {
+                  if (modelType === 'static' && handsRef.current) {
+                    await handsRef.current.send({ image: videoRef.current });
+                  } else if (modelType === 'dynamic' && holisticRef.current) {
+                    await holisticRef.current.send({ image: videoRef.current });
+                  }
+                } catch (error) {
+                  console.error('Error processing frame:', error);
+                }
+              },
+              width: 640,
+              height: 480,
+            });
 
-          cameraRef.current.start();
+            await cameraRef.current.start();
+            console.log('Camera started successfully');
+          } catch (error) {
+            console.error('Error starting camera:', error);
+            alert('Failed to start camera. Please check your camera permissions and try again.');
+            return;
+          }
         }
 
         setCameraStarted(true);
@@ -430,6 +433,207 @@ export const LessonVideo = () => {
         "Unable to access camera. Please make sure you have granted camera permissions."
       );
     }
+  };
+
+  // Helper function to process landmarks based on model type
+  const processLandmarks = (landmarks) => {
+    if (modelType === 'static') {
+      // Process hand landmarks for static model
+      const width = videoRef.current.videoWidth;
+      const height = videoRef.current.videoHeight;
+
+      // Convert normalized landmarks to pixel space
+      const pixelLandmarks = landmarks.map((l) => [
+        Math.min(Math.floor(l.x * width), width - 1),
+        Math.min(Math.floor(l.y * height), height - 1),
+      ]);
+
+      // Bounding box calculation
+      const xs = pixelLandmarks.map((p) => p[0]);
+      const ys = pixelLandmarks.map((p) => p[1]);
+      const minX = Math.min(...xs);
+      const minY = Math.min(...ys);
+      const maxX = Math.max(...xs);
+      const maxY = Math.max(...ys);
+
+      // Normalize landmarks
+      const baseX = pixelLandmarks[0][0];
+      const baseY = pixelLandmarks[0][1];
+      const centered = pixelLandmarks.map(([x, y]) => [
+        x - baseX,
+        y - baseY,
+      ]);
+      const flat = centered.flat();
+
+      // Normalize using the max value
+      const maxVal = Math.max(...flat.map(Math.abs));
+      const normalizedLandmarks =
+        maxVal !== 0 ? flat.map((v) => v / maxVal) : flat;
+
+      // Store normalized landmarks
+      if (normalizedLandmarks.length === 42) {
+        landmarkFramesRef.current.push(normalizedLandmarks);
+      }
+    } else {
+      // Process holistic landmarks for dynamic model
+
+      // Initialize arrays for each landmark type
+      const poseLandmarks = [];
+      const leftHandLandmarks = [];
+      const rightHandLandmarks = [];
+
+      // Extract pose landmarks (all 33 landmarks)
+      if (landmarks.pose) {
+        landmarks.pose.forEach(landmark => {
+          poseLandmarks.push([
+            landmark.x,  // Already normalized by MediaPipe (0-1)
+            landmark.y,  // Already normalized by MediaPipe (0-1)
+            landmark.visibility || 0
+          ]);
+        });
+      }
+
+      // Extract hand landmarks (only x,y coordinates)
+      if (landmarks.leftHand) {
+        landmarks.leftHand.forEach(landmark => {
+          leftHandLandmarks.push([
+            landmark.x,  // Already normalized by MediaPipe (0-1)
+            landmark.y   // Already normalized by MediaPipe (0-1)
+          ]);
+        });
+      }
+      if (landmarks.rightHand) {
+        landmarks.rightHand.forEach(landmark => {
+          rightHandLandmarks.push([
+            landmark.x,  // Already normalized by MediaPipe (0-1)
+            landmark.y   // Already normalized by MediaPipe (0-1)
+          ]);
+        });
+      }
+
+      // Create zero-filled arrays for missing landmarks
+      const createZeroLandmarks = (count, isPose = false) => {
+        return Array(count).fill().map(() => isPose ? [0, 0, 0] : [0, 0]);
+      };
+
+      // Fill in missing landmarks with zeros
+      if (leftHandLandmarks.length === 0) {
+        leftHandLandmarks.push(...createZeroLandmarks(21));
+      }
+      if (rightHandLandmarks.length === 0) {
+        rightHandLandmarks.push(...createZeroLandmarks(21));
+      }
+      if (poseLandmarks.length === 0) {
+        poseLandmarks.push(...createZeroLandmarks(33, true));
+      }
+
+
+      // For dynamic model, just flatten the raw landmarks
+      const allLandmarks = [
+        ...poseLandmarks.map(l => [l.x, l.y, l.visibility]).flat(),
+        ...leftHandLandmarks.map(l => [l.x, l.y]).flat(),
+        ...rightHandLandmarks.map(l => [l.x, l.y]).flat()
+      ];
+
+      // Store landmarks if we have the correct number
+      if (allLandmarks.length === 183) {
+        landmarkFramesRef.current.push(allLandmarks);
+      } else {
+        console.warn(`Invalid landmark count for dynamic model: ${allLandmarks.length}, expected 183. Pose: ${poseLandmarks.length}, Left Hand: ${leftHandLandmarks.length}, Right Hand: ${rightHandLandmarks.length}`);
+      }
+    }
+  };
+
+  // Helper function to draw landmarks on canvas
+  const drawLandmarksOnCanvas = (results) => {
+    if (!canvasRef.current) return;
+    
+    const ctx = canvasRef.current.getContext("2d");
+    if (!ctx) return;
+
+    // Clear canvas
+    ctx.clearRect(
+      0,
+      0,
+      canvasRef.current.width,
+      canvasRef.current.height
+    );
+
+    // Make canvas same size as video
+    canvasRef.current.width = videoRef.current.videoWidth;
+    canvasRef.current.height = videoRef.current.videoHeight;
+
+    // Mirror the canvas context
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.translate(-canvasRef.current.width, 0);
+
+    if (modelType === 'static') {
+      // Draw hand landmarks
+      if (results && results.length > 0) {
+        drawConnectors(
+          ctx,
+          results[0],
+          Hands.HAND_CONNECTIONS,
+          { color: "#00FF00", lineWidth: 5 }
+        );
+        drawLandmarks(ctx, results[0], {
+          color: "#FF0000",
+          lineWidth: 2,
+          radius: 4,
+        });
+      }
+    } else {
+      // Draw holistic landmarks
+      if (results) {
+        // Draw pose landmarks
+        if (results.poseLandmarks) {
+          drawConnectors(
+            ctx,
+            results.poseLandmarks,
+            Holistic.POSE_CONNECTIONS,
+            { color: "#00FF00", lineWidth: 2 }
+          );
+          drawLandmarks(ctx, results.poseLandmarks, {
+            color: "#FF0000",
+            lineWidth: 1,
+            radius: 2,
+          });
+        }
+
+        // Draw hand landmarks
+        if (results.leftHandLandmarks) {
+          drawConnectors(
+            ctx,
+            results.leftHandLandmarks,
+            Holistic.HAND_CONNECTIONS,
+            { color: "#00FF00", lineWidth: 2 }
+          );
+          drawLandmarks(ctx, results.leftHandLandmarks, {
+            color: "#FF0000",
+            lineWidth: 1,
+            radius: 2,
+          });
+        }
+
+        if (results.rightHandLandmarks) {
+          drawConnectors(
+            ctx,
+            results.rightHandLandmarks,
+            Holistic.HAND_CONNECTIONS,
+            { color: "#00FF00", lineWidth: 2 }
+          );
+          drawLandmarks(ctx, results.rightHandLandmarks, {
+            color: "#FF0000",
+            lineWidth: 1,
+            radius: 2,
+          });
+        }
+      }
+    }
+
+    // Restore the context
+    ctx.restore();
   };
 
   const startRecording = () => {
@@ -504,14 +708,15 @@ export const LessonVideo = () => {
     // Clear any existing feedback temporarily during submission
     setFeedbackStatus(null);
 
-    // Filter out any frames that don't have exactly 42 values
+    // Filter frames based on model type
+    const expectedLength = modelType === 'static' ? 42 : 183;
     const validFrames = landmarkFramesRef.current.filter(
-      (frame) => frame.length === 42
+      (frame) => frame.length === expectedLength
     );
 
     if (validFrames.length === 0) {
       alert(
-        "No valid hand landmarks detected during recording. Please ensure your hand is visible in the camera view and try again."
+        `No valid ${modelType === 'static' ? 'hand' : 'body'} landmarks detected during recording. Please ensure your ${modelType === 'static' ? 'hand' : 'hands and upper body'} are visible in the camera view and try again.`
       );
       setIsSubmitting(false); // Reset submitting flag
       setHasAttempted(true);
@@ -520,7 +725,7 @@ export const LessonVideo = () => {
 
     // If we have less than 5 frames of landmarks, warn the user but continue
     if (validFrames.length < 5) {
-      console.warn("Very few landmarks detected - results may not be accurate");
+      console.warn(`Very few ${modelType === 'static' ? 'hand' : 'body'} landmarks detected - results may not be accurate`);
     }
 
     // Prepare landmark data for submission
@@ -538,12 +743,14 @@ export const LessonVideo = () => {
           landmarks: validFrames, // Only send the valid frames
           lesson_id: lessonId,
           sign: lesson.answers[currentVideoIndex],
+          model_type: modelType // Add model type to the request
         }),
         credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error("Failed to analyze landmarks");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to analyze landmarks");
       }
 
       const data = await response.json();
@@ -605,7 +812,7 @@ export const LessonVideo = () => {
       }
     } catch (err) {
       console.error("Error:", err);
-      alert("Failed to process hand landmarks. Please try again.");
+      alert(err.message || "Failed to process landmarks. Please try again.");
       setFeedbackStatus(null);
     } finally {
       setIsSubmitting(false); // Always reset the submitting flag
@@ -623,6 +830,11 @@ export const LessonVideo = () => {
     if (handsRef.current) {
       handsRef.current.close();
       handsRef.current = null;
+    }
+
+    if (holisticRef.current) {
+      holisticRef.current.close();
+      holisticRef.current = null;
     }
     
     if (videoRef.current && videoRef.current.srcObject) {
