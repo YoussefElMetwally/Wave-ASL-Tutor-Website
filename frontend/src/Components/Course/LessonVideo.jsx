@@ -4,7 +4,7 @@ import { useTheme } from "../LoginSignup/ThemeContext";
 import { useSound } from "../LoginSignup/SoundContext";
 import "./Course.css";
 import "../LoginSignup/LoginSignup.css"; // Import shared styles
-import closeIcon from '../Assets/close.png'; // Import the close icon
+import closeIcon from "../Assets/close.png"; // Import the close icon
 // Import MediaPipe libraries and utilities
 import { Hands } from "@mediapipe/hands";
 import { Holistic } from "@mediapipe/holistic";
@@ -58,9 +58,10 @@ export const LessonVideo = () => {
   const [courseId, setCourseId] = useState(null);
   // Add a state to track feedback display status
   const [feedbackStatus, setFeedbackStatus] = useState(null); // 'correct', 'incorrect', or null
-  const [showLessonCompletedPopup, setShowLessonCompletedPopup] = useState(false);
+  const [showLessonCompletedPopup, setShowLessonCompletedPopup] =
+    useState(false);
   // Add state for model type
-  const [modelType, setModelType] = useState('static'); // 'static' or 'dynamic'
+  const [modelType, setModelType] = useState("static"); // 'static' or 'dynamic'
 
   useEffect(() => {
     document.body.setAttribute("data-theme", isDarkMode ? "dark" : "light");
@@ -81,15 +82,15 @@ export const LessonVideo = () => {
   const playSound = (isCorrect) => {
     // Only play sounds if they're enabled in settings
     if (!isSoundEnabled) return;
-    
+
     if (isCorrect && correctSoundRef.current) {
       correctSoundRef.current.currentTime = 0;
-      correctSoundRef.current.play().catch(error => {
+      correctSoundRef.current.play().catch((error) => {
         console.error("Error playing correct sound:", error);
       });
     } else if (!isCorrect && incorrectSoundRef.current) {
       incorrectSoundRef.current.currentTime = 0;
-      incorrectSoundRef.current.play().catch(error => {
+      incorrectSoundRef.current.play().catch((error) => {
         console.error("Error playing incorrect sound:", error);
       });
     }
@@ -98,7 +99,7 @@ export const LessonVideo = () => {
   useEffect(() => {
     // Prevent duplicate fetches in development mode (React StrictMode)
     if (fetchedRef.current) return;
-    
+
     const fetchLesson = async () => {
       try {
         fetchedRef.current = true;
@@ -115,26 +116,30 @@ export const LessonVideo = () => {
 
         if (response.status === 403) {
           // User is not enrolled in this course
-          console.error('Access denied: Not enrolled in this course');
-          navigate('/home', { 
-            state: { 
-              notificationMessage: 'You need to enroll in this course before accessing lessons',
-              notificationType: 'error'
-            } 
+          console.error("Access denied: Not enrolled in this course");
+          navigate("/home", {
+            state: {
+              notificationMessage:
+                "You need to enroll in this course before accessing lessons",
+              notificationType: "error",
+            },
           });
           return;
         }
 
-        // If the new endpoint fails for reasons other than access control, 
+        // If the new endpoint fails for reasons other than access control,
         // fall back to the original endpoint
         if (!response.ok && response.status !== 403) {
-          response = await fetch(`http://localhost:8000/api/lessons/${lessonId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          });
+          response = await fetch(
+            `http://localhost:8000/api/lessons/${lessonId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+            }
+          );
         }
 
         if (!response.ok) {
@@ -159,20 +164,24 @@ export const LessonVideo = () => {
         }
 
         // Determine model type based on model_path
-        const isDynamicModel = data.model_path && data.model_path.toLowerCase().includes('dynamic');
-        setModelType(isDynamicModel ? 'dynamic' : 'static');
+        const isDynamicModel =
+          data.model_path && data.model_path.toLowerCase().includes("dynamic");
+        setModelType(isDynamicModel ? "dynamic" : "static");
 
         setLesson(data);
-        
+
         // Fetch the course ID based on the slug
-        const courseResponse = await fetch(`http://localhost:8000/api/courses/${courseSlug}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-        
+        const courseResponse = await fetch(
+          `http://localhost:8000/api/courses/${courseSlug}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
+
         if (courseResponse.ok) {
           const courseData = await courseResponse.json();
           setCourseId(courseData.course_id);
@@ -193,14 +202,14 @@ export const LessonVideo = () => {
     const checkLessonCompletion = async () => {
       // Only proceed if we have a lesson loaded, not already marked as completed, and have courseId
       if (!lesson || lessonCompletedRef.current || !courseId) return;
-      
+
       // Check if all signs (videos) are completed
       if (completedSigns.length >= lesson.videos.length) {
         lessonCompletedRef.current = true;
         await markLessonAsCompleted();
       }
     };
-    
+
     checkLessonCompletion();
   }, [completedSigns, lesson, courseId]);
 
@@ -208,30 +217,38 @@ export const LessonVideo = () => {
   const markLessonAsCompleted = async () => {
     try {
       const token = localStorage.getItem("token");
-      const userId = JSON.parse(atob(token.split('.')[1])).id;
-      
+      const userId = JSON.parse(atob(token.split(".")[1])).id;
+
       // Call the API to increment completed lessons
-      const response = await fetch("http://localhost:8000/api/enrollment/increment", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          course_id: courseId,
-          lesson_id: lessonId
-        }),
-        credentials: "include",
-      });
+      const response = await fetch(
+        "http://localhost:8000/api/enrollment/increment",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            course_id: courseId,
+            lesson_id: lessonId,
+          }),
+          credentials: "include",
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Lesson marked as completed! Course progress updated:", data.progress);
-        
+        console.log(
+          "Lesson marked as completed! Course progress updated:",
+          data.progress
+        );
+
         // Show a completion message
         if (completedSigns.length === lesson.videos.length) {
-          alert("Congratulations! You've completed this lesson. Your progress has been updated.");
+          alert(
+            "Congratulations! You've completed this lesson. Your progress has been updated."
+          );
         }
       } else {
         console.error("Failed to update lesson completion status");
@@ -295,7 +312,7 @@ export const LessonVideo = () => {
         videoRef.current.srcObject = stream;
 
         // Initialize MediaPipe based on model type
-        if (modelType === 'static') {
+        if (modelType === "static") {
           // Initialize MediaPipe Hands for static model
           if (!handsRef.current) {
             try {
@@ -336,10 +353,12 @@ export const LessonVideo = () => {
                 drawLandmarksOnCanvas(results.multiHandLandmarks);
               });
 
-              console.log('MediaPipe Hands initialized successfully');
+              console.log("MediaPipe Hands initialized successfully");
             } catch (error) {
-              console.error('Error initializing MediaPipe Hands:', error);
-              alert('Failed to initialize hand tracking. Please try refreshing the page.');
+              console.error("Error initializing MediaPipe Hands:", error);
+              alert(
+                "Failed to initialize hand tracking. Please try refreshing the page."
+              );
               return;
             }
           }
@@ -362,7 +381,8 @@ export const LessonVideo = () => {
 
               holisticRef.current.onResults((results) => {
                 // Update hand detection status
-                const hasHand = results.rightHandLandmarks || results.leftHandLandmarks;
+                const hasHand =
+                  results.rightHandLandmarks || results.leftHandLandmarks;
                 setHandDetected(hasHand);
 
                 // Update debug info
@@ -376,17 +396,17 @@ export const LessonVideo = () => {
                 // Store landmarks if hand is detected and we're recording
                 if ((isRecordingActive || recording) && hasHand) {
                   // Log the raw results for debugging
-                  console.log('Holistic Results:', {
+                  console.log("Holistic Results:", {
                     pose: results.poseLandmarks?.length || 0,
                     leftHand: results.leftHandLandmarks?.length || 0,
-                    rightHand: results.rightHandLandmarks?.length || 0
+                    rightHand: results.rightHandLandmarks?.length || 0,
                   });
 
                   // Combine hand landmarks with pose landmarks for full body tracking
                   const landmarks = {
                     pose: results.poseLandmarks || [],
                     leftHand: results.leftHandLandmarks || [],
-                    rightHand: results.rightHandLandmarks || []
+                    rightHand: results.rightHandLandmarks || [],
                   };
                   processLandmarks(landmarks);
                 }
@@ -395,10 +415,12 @@ export const LessonVideo = () => {
                 drawLandmarksOnCanvas(results);
               });
 
-              console.log('MediaPipe Holistic initialized successfully');
+              console.log("MediaPipe Holistic initialized successfully");
             } catch (error) {
-              console.error('Error initializing MediaPipe Holistic:', error);
-              alert('Failed to initialize full body tracking. Please try refreshing the page.');
+              console.error("Error initializing MediaPipe Holistic:", error);
+              alert(
+                "Failed to initialize full body tracking. Please try refreshing the page."
+              );
               return;
             }
           }
@@ -410,13 +432,13 @@ export const LessonVideo = () => {
             cameraRef.current = new Camera(videoRef.current, {
               onFrame: async () => {
                 try {
-                  if (modelType === 'static' && handsRef.current) {
+                  if (modelType === "static" && handsRef.current) {
                     await handsRef.current.send({ image: videoRef.current });
-                  } else if (modelType === 'dynamic' && holisticRef.current) {
+                  } else if (modelType === "dynamic" && holisticRef.current) {
                     await holisticRef.current.send({ image: videoRef.current });
                   }
                 } catch (error) {
-                  console.error('Error processing frame:', error);
+                  console.error("Error processing frame:", error);
                 }
               },
               width: 640,
@@ -424,10 +446,12 @@ export const LessonVideo = () => {
             });
 
             await cameraRef.current.start();
-            console.log('Camera started successfully');
+            console.log("Camera started successfully");
           } catch (error) {
-            console.error('Error starting camera:', error);
-            alert('Failed to start camera. Please check your camera permissions and try again.');
+            console.error("Error starting camera:", error);
+            alert(
+              "Failed to start camera. Please check your camera permissions and try again."
+            );
             return;
           }
         }
@@ -444,7 +468,7 @@ export const LessonVideo = () => {
 
   // Helper function to process landmarks based on model type
   const processLandmarks = (landmarks) => {
-    if (modelType === 'static') {
+    if (modelType === "static") {
       // Process hand landmarks for static model
       const width = videoRef.current.videoWidth;
       const height = videoRef.current.videoHeight;
@@ -466,10 +490,7 @@ export const LessonVideo = () => {
       // Normalize landmarks
       const baseX = pixelLandmarks[0][0];
       const baseY = pixelLandmarks[0][1];
-      const centered = pixelLandmarks.map(([x, y]) => [
-        x - baseX,
-        y - baseY,
-      ]);
+      const centered = pixelLandmarks.map(([x, y]) => [x - baseX, y - baseY]);
       const flat = centered.flat();
 
       // Normalize using the max value
@@ -490,12 +511,16 @@ export const LessonVideo = () => {
 
       // Extract pose landmarks (all 33 landmarks)
       if (landmarks.pose && landmarks.pose.length > 0) {
-        landmarks.pose.forEach(landmark => {
-          if (landmark && typeof landmark.x === 'number' && typeof landmark.y === 'number') {
+        landmarks.pose.forEach((landmark) => {
+          if (
+            landmark &&
+            typeof landmark.x === "number" &&
+            typeof landmark.y === "number"
+          ) {
             poseLandmarks.push([
-              landmark.x,  // Already normalized by MediaPipe (0-1)
-              landmark.y,  // Already normalized by MediaPipe (0-1)
-              landmark.visibility || 0
+              landmark.x, // Already normalized by MediaPipe (0-1)
+              landmark.y, // Already normalized by MediaPipe (0-1)
+              landmark.visibility || 0,
             ]);
           }
         });
@@ -503,21 +528,29 @@ export const LessonVideo = () => {
 
       // Extract hand landmarks (only x,y coordinates)
       if (landmarks.leftHand && landmarks.leftHand.length > 0) {
-        landmarks.leftHand.forEach(landmark => {
-          if (landmark && typeof landmark.x === 'number' && typeof landmark.y === 'number') {
+        landmarks.leftHand.forEach((landmark) => {
+          if (
+            landmark &&
+            typeof landmark.x === "number" &&
+            typeof landmark.y === "number"
+          ) {
             leftHandLandmarks.push([
-              landmark.x,  // Already normalized by MediaPipe (0-1)
-              landmark.y   // Already normalized by MediaPipe (0-1)
+              landmark.x, // Already normalized by MediaPipe (0-1)
+              landmark.y, // Already normalized by MediaPipe (0-1)
             ]);
           }
         });
       }
       if (landmarks.rightHand && landmarks.rightHand.length > 0) {
-        landmarks.rightHand.forEach(landmark => {
-          if (landmark && typeof landmark.x === 'number' && typeof landmark.y === 'number') {
+        landmarks.rightHand.forEach((landmark) => {
+          if (
+            landmark &&
+            typeof landmark.x === "number" &&
+            typeof landmark.y === "number"
+          ) {
             rightHandLandmarks.push([
-              landmark.x,  // Already normalized by MediaPipe (0-1)
-              landmark.y   // Already normalized by MediaPipe (0-1)
+              landmark.x, // Already normalized by MediaPipe (0-1)
+              landmark.y, // Already normalized by MediaPipe (0-1)
             ]);
           }
         });
@@ -525,7 +558,9 @@ export const LessonVideo = () => {
 
       // Create zero-filled arrays for missing landmarks
       const createZeroLandmarks = (count, isPose = false) => {
-        return Array(count).fill().map(() => isPose ? [0, 0, 0] : [0, 0]);
+        return Array(count)
+          .fill()
+          .map(() => (isPose ? [0, 0, 0] : [0, 0]));
       };
 
       // Fill in missing landmarks with zeros
@@ -540,24 +575,26 @@ export const LessonVideo = () => {
       }
 
       // Log the processed landmarks for debugging
-      console.log('Processed Landmarks:', {
+      console.log("Processed Landmarks:", {
         pose: poseLandmarks.length,
         leftHand: leftHandLandmarks.length,
-        rightHand: rightHandLandmarks.length
+        rightHand: rightHandLandmarks.length,
       });
 
       // For dynamic model, just flatten the raw landmarks
       const allLandmarks = [
         ...poseLandmarks.flat(),
         ...leftHandLandmarks.flat(),
-        ...rightHandLandmarks.flat()
+        ...rightHandLandmarks.flat(),
       ];
 
       // Store landmarks if we have the correct number
       if (allLandmarks.length === 183) {
         landmarkFramesRef.current.push(allLandmarks);
       } else {
-        console.warn(`Invalid landmark count for dynamic model: ${allLandmarks.length}, expected 183. Pose: ${poseLandmarks.length}, Left Hand: ${leftHandLandmarks.length}, Right Hand: ${rightHandLandmarks.length}`);
+        console.warn(
+          `Invalid landmark count for dynamic model: ${allLandmarks.length}, expected 183. Pose: ${poseLandmarks.length}, Left Hand: ${leftHandLandmarks.length}, Right Hand: ${rightHandLandmarks.length}`
+        );
       }
     }
   };
@@ -565,17 +602,12 @@ export const LessonVideo = () => {
   // Helper function to draw landmarks on canvas
   const drawLandmarksOnCanvas = (results) => {
     if (!canvasRef.current) return;
-    
+
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
 
     // Clear canvas
-    ctx.clearRect(
-      0,
-      0,
-      canvasRef.current.width,
-      canvasRef.current.height
-    );
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
     // Make canvas same size as video
     canvasRef.current.width = videoRef.current.videoWidth;
@@ -586,15 +618,13 @@ export const LessonVideo = () => {
     ctx.scale(-1, 1);
     ctx.translate(-canvasRef.current.width, 0);
 
-    if (modelType === 'static') {
+    if (modelType === "static") {
       // Draw hand landmarks
       if (results && results.length > 0) {
-        drawConnectors(
-          ctx,
-          results[0],
-          Hands.HAND_CONNECTIONS,
-          { color: "#00FF00", lineWidth: 5 }
-        );
+        drawConnectors(ctx, results[0], Hands.HAND_CONNECTIONS, {
+          color: "#00FF00",
+          lineWidth: 5,
+        });
         drawLandmarks(ctx, results[0], {
           color: "#FF0000",
           lineWidth: 2,
@@ -711,30 +741,34 @@ export const LessonVideo = () => {
   const stopRecording = async () => {
     // Immediately update flags to prevent double requests
     if (!isRecordingActive || isSubmitting) return; // Guard against duplicate calls
-    
+
     // Clear any existing recording interval
     if (recordingIntervalRef.current) {
       clearInterval(recordingIntervalRef.current);
       recordingIntervalRef.current = null;
     }
-    
+
     setRecording(false);
     isRecordingActive = false;
     setRecordingTime(3);
     setIsSubmitting(true); // Set flag to indicate we're submitting
-    
+
     // Clear any existing feedback temporarily during submission
     setFeedbackStatus(null);
 
     // Filter frames based on model type
-    const expectedLength = modelType === 'static' ? 42 : 183;
+    const expectedLength = modelType === "static" ? 42 : 183;
     const validFrames = landmarkFramesRef.current.filter(
       (frame) => frame.length === expectedLength
     );
 
     if (validFrames.length === 0) {
       alert(
-        `No valid ${modelType === 'static' ? 'hand' : 'body'} landmarks detected during recording. Please ensure your ${modelType === 'static' ? 'hand' : 'hands and upper body'} are visible in the camera view and try again.`
+        `No valid ${
+          modelType === "static" ? "hand" : "body"
+        } landmarks detected during recording. Please ensure your ${
+          modelType === "static" ? "hand" : "hands and upper body"
+        } are visible in the camera view and try again.`
       );
       setIsSubmitting(false); // Reset submitting flag
       setHasAttempted(true);
@@ -743,7 +777,11 @@ export const LessonVideo = () => {
 
     // If we have less than 5 frames of landmarks, warn the user but continue
     if (validFrames.length < 5) {
-      console.warn(`Very few ${modelType === 'static' ? 'hand' : 'body'} landmarks detected - results may not be accurate`);
+      console.warn(
+        `Very few ${
+          modelType === "static" ? "hand" : "body"
+        } landmarks detected - results may not be accurate`
+      );
     }
 
     // Prepare landmark data for submission
@@ -761,7 +799,7 @@ export const LessonVideo = () => {
           landmarks: validFrames, // Only send the valid frames
           lesson_id: lessonId,
           sign: lesson.answers[currentVideoIndex],
-          model_type: modelType // Add model type to the request
+          model_type: modelType, // Add model type to the request
         }),
         credentials: "include",
       });
@@ -774,14 +812,15 @@ export const LessonVideo = () => {
       const data = await response.json();
 
       // Check if the sign is correct
-      const isCorrect = data.predictedSign === lesson.answers[currentVideoIndex];
-      
+      const isCorrect =
+        data.predictedSign === lesson.answers[currentVideoIndex];
+
       // Set the feedback status first before any other state updates
-      setFeedbackStatus(isCorrect ? 'correct' : 'incorrect');
-      
+      setFeedbackStatus(isCorrect ? "correct" : "incorrect");
+
       // Then update the sign correctness state
       setIsSignCorrect(isCorrect);
-      
+
       // Now add to saved recordings
       setSavedRecordings((prev) => [
         ...prev,
@@ -791,36 +830,39 @@ export const LessonVideo = () => {
           result: {
             predictedSign: data.predictedSign,
             confidence: data.confidence / 100, // Convert percentage to decimal
-            isCorrect: isCorrect
+            isCorrect: isCorrect,
           },
         },
       ]);
-      
+
       // Play sound effect based on result
       playSound(isCorrect);
 
       if (isCorrect) {
         // Add the current sign to completed signs if not already there
-        setCompletedSigns(prev => {
+        setCompletedSigns((prev) => {
           if (!prev.includes(currentVideoIndex)) {
             const newCompletedSigns = [...prev, currentVideoIndex];
-            
+
             // Check if all signs are completed after adding this one
-            if (newCompletedSigns.length === lesson.videos.length && !lessonCompletedRef.current) {
+            if (
+              newCompletedSigns.length === lesson.videos.length &&
+              !lessonCompletedRef.current
+            ) {
               // Mark the lesson as completed asynchronously
               markLessonAsCompleted();
               lessonCompletedRef.current = true;
             }
-            
+
             return newCompletedSigns;
           }
           return prev;
         });
-        
+
         setTimeout(() => {
           // Just show success but keep the user on the camera page
           // No need to set isSignCorrect again as it's already set
-          
+
           // Show a notification that they've completed the sign successfully
           setShowPracticeSuccess(true);
           setTimeout(() => {
@@ -844,7 +886,7 @@ export const LessonVideo = () => {
       cameraRef.current.stop();
       cameraRef.current = null;
     }
-    
+
     if (handsRef.current) {
       handsRef.current.close();
       handsRef.current = null;
@@ -854,10 +896,10 @@ export const LessonVideo = () => {
       holisticRef.current.close();
       holisticRef.current = null;
     }
-    
+
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach(track => track.stop());
+      tracks.forEach((track) => track.stop());
       videoRef.current.srcObject = null;
     }
   };
@@ -868,7 +910,7 @@ export const LessonVideo = () => {
       // Clean up when component unmounts
       cleanupCamera();
       isRecordingActive = false;
-      
+
       // Clear any recording interval
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current);
@@ -915,10 +957,12 @@ export const LessonVideo = () => {
 
   useEffect(() => {
     // Show the completion popup when the user completes the final sign
-    if (completedSigns.length > 0 && 
-        lesson && 
-        completedSigns.includes(lesson.videos.length - 1) && 
-        currentVideoIndex === lesson.videos.length - 1) {
+    if (
+      completedSigns.length > 0 &&
+      lesson &&
+      completedSigns.includes(lesson.videos.length - 1) &&
+      currentVideoIndex === lesson.videos.length - 1
+    ) {
       setShowLessonCompletedPopup(true);
     }
   }, [completedSigns, lesson, currentVideoIndex]);
@@ -947,20 +991,29 @@ export const LessonVideo = () => {
   }
 
   return (
-    
-    <div className={`lesson-video-container ${isDarkMode ? "dark-mode" : "light-mode"}`}>
+    <div
+      className={`lesson-video-container ${
+        isDarkMode ? "dark-mode" : "light-mode"
+      }`}
+    >
       {/* Back button */}
       <div className="back-button" onClick={handleBackClick}>
         <img src={closeIcon} alt="Back to course" title="Back to course" />
       </div>
       {/* Audio elements for sound effects */}
       <audio ref={correctSoundRef} preload="auto">
-        <source src="/src/Components/Assets/sounds/correct_sound.wav" type="audio/wav" />
+        <source
+          src="/src/Components/Assets/sounds/correct_sound.wav"
+          type="audio/wav"
+        />
       </audio>
       <audio ref={incorrectSoundRef} preload="auto">
-        <source src="/src/Components/Assets/sounds/incorrect_sound.wav" type="audio/wav" />
+        <source
+          src="/src/Components/Assets/sounds/incorrect_sound.wav"
+          type="audio/wav"
+        />
       </audio>
-      
+
       {/* Lesson Completed Popup */}
       {showLessonCompletedPopup && (
         <div className="lesson-completed-overlay">
@@ -1000,9 +1053,9 @@ export const LessonVideo = () => {
             {lesson.videos.map((_, index) => (
               <span
                 key={index}
-                className={`dot ${index === currentVideoIndex ? "active" : ""} ${
-                  completedSigns.includes(index) ? "completed" : ""
-                }`}
+                className={`dot ${
+                  index === currentVideoIndex ? "active" : ""
+                } ${completedSigns.includes(index) ? "completed" : ""}`}
               ></span>
             ))}
           </div>
@@ -1050,22 +1103,27 @@ export const LessonVideo = () => {
                         Next
                       </button>
                     </div>
-                    
+
                     {showNextButton && (
                       <div className="next-sign-overlay">
                         <div className="next-sign-content">
                           <p>Ready to move to the next sign?</p>
-                          <button 
+                          <button
                             className="next-sign-button"
                             onClick={() => {
-                              if (currentVideoIndex < lesson.videos.length - 1) {
+                              if (
+                                currentVideoIndex <
+                                lesson.videos.length - 1
+                              ) {
                                 goToNextVideo();
                               } else {
                                 setIsVideoComplete(true);
                               }
                             }}
                           >
-                            {currentVideoIndex < lesson.videos.length - 1 ? 'Next Sign' : 'Complete Lesson'}
+                            {currentVideoIndex < lesson.videos.length - 1
+                              ? "Next Sign"
+                              : "Complete Lesson"}
                           </button>
                         </div>
                       </div>
@@ -1129,19 +1187,25 @@ export const LessonVideo = () => {
                 </div>
               )}
 
-              {feedbackStatus === 'correct' && hasAttempted && (
+              {feedbackStatus === "correct" && hasAttempted && (
                 <div className="feedback-overlay correct">
                   <span>✓ Correct!</span>
                 </div>
               )}
 
-              {feedbackStatus === 'incorrect' && hasAttempted && recording === false && savedRecordings.length > 0 && !isSubmitting && (
-                <div className="feedback-overlay incorrect">
-                  <span>✗ Incorrect! You signed: {
-                    savedRecordings[savedRecordings.length-1].result?.predictedSign || "Unknown"
-                  }</span>
-                </div>
-              )}
+              {feedbackStatus === "incorrect" &&
+                hasAttempted &&
+                recording === false &&
+                savedRecordings.length > 0 &&
+                !isSubmitting && (
+                  <div className="feedback-overlay incorrect">
+                    <span>
+                      ✗ Incorrect! You signed:{" "}
+                      {savedRecordings[savedRecordings.length - 1].result
+                        ?.predictedSign || "Unknown"}
+                    </span>
+                  </div>
+                )}
             </div>
 
             <div className="practice-controls">
@@ -1156,7 +1220,7 @@ export const LessonVideo = () => {
                 </button>
               )}
               {hasAttempted && !recording && (
-                <button 
+                <button
                   onClick={() => {
                     setHasAttempted(false);
                     setIsSignCorrect(false);
@@ -1164,7 +1228,7 @@ export const LessonVideo = () => {
                     setRecordingTime(3); // Reset recording time
                     landmarkFramesRef.current = []; // Clear stored landmarks
                     setDebugInfo({ framesProcessed: 0, landmarksDetected: 0 }); // Reset debug info
-                  }} 
+                  }}
                   className="clear-btn"
                 >
                   Clear Results
@@ -1183,21 +1247,23 @@ export const LessonVideo = () => {
                   Back to Video
                 </button>
               )}
-              {isSignCorrect && completedSigns.includes(currentVideoIndex) && currentVideoIndex < lesson.videos.length - 1 && (
-                <button
-                  onClick={() => {
-                    cleanupCamera();
-                    setIsPracticeMode(false);
-                    setCameraStarted(false);
-                    setHasAttempted(false);
-                    setIsSignCorrect(false);
-                    goToNextVideo();
-                  }}
-                  className="next-sign-btn"
-                >
-                  Next Sign
-                </button>
-              )}
+              {isSignCorrect &&
+                completedSigns.includes(currentVideoIndex) &&
+                currentVideoIndex < lesson.videos.length - 1 && (
+                  <button
+                    onClick={() => {
+                      cleanupCamera();
+                      setIsPracticeMode(false);
+                      setCameraStarted(false);
+                      setHasAttempted(false);
+                      setIsSignCorrect(false);
+                      goToNextVideo();
+                    }}
+                    className="next-sign-btn"
+                  >
+                    Next Sign
+                  </button>
+                )}
             </div>
 
             {savedRecordings.length > 0 && (
@@ -1220,8 +1286,13 @@ export const LessonVideo = () => {
                         </div>
                       </div>
                       <div className="recording-info">
-                        <span><strong>Expected:</strong> {recording.sign}</span>
-                        <span><strong>You signed:</strong> {recording.result?.predictedSign || "Unknown"}</span>
+                        <span>
+                          <strong>Expected:</strong> {recording.sign}
+                        </span>
+                        <span>
+                          <strong>You signed:</strong>{" "}
+                          {recording.result?.predictedSign || "Unknown"}
+                        </span>
                         <span>
                           <strong>Confidence:</strong>{" "}
                           {Math.round(
