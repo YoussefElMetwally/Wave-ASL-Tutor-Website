@@ -66,6 +66,19 @@ exports.classify = async (req, res) => {
         confidence: confidence,
       });
     } else if (fileName.startsWith("DYNAMIC")) {
+      // Log the received landmarks for debugging
+    /*  console.log('Received landmarks for dynamic model:', {
+        framesCount: landmarks.length,
+        firstFrameSample: landmarks[0]?.slice(0, 10), // First 10 values of first frame
+        lastFrameSample: landmarks[landmarks.length - 1]?.slice(0, 10), // First 10 values of last frame
+        frameLengths: landmarks.map(frame => frame.length), // Check if all frames have correct length
+        hasNullValues: landmarks.some(frame => frame.some(val => val === null || val === undefined)),
+        valueRange: {
+          min: Math.min(...landmarks.flat()),
+          max: Math.max(...landmarks.flat())
+        }
+      }); */
+
       res.status(501).json({ message: "Dynamic model support coming soon" });
     } else {
       res.status(500).json({ message: "Model name error" });

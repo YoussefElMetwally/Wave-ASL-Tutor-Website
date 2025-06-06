@@ -375,11 +375,18 @@ export const LessonVideo = () => {
 
                 // Store landmarks if hand is detected and we're recording
                 if ((isRecordingActive || recording) && hasHand) {
+                  // Log the raw results for debugging
+                  console.log('Holistic Results:', {
+                    pose: results.poseLandmarks?.length || 0,
+                    leftHand: results.leftHandLandmarks?.length || 0,
+                    rightHand: results.rightHandLandmarks?.length || 0
+                  });
+
                   // Combine hand landmarks with pose landmarks for full body tracking
                   const landmarks = {
-                    pose: results.poseLandmarks,
-                    leftHand: results.leftHandLandmarks,
-                    rightHand: results.rightHandLandmarks,
+                    pose: results.poseLandmarks || [],
+                    leftHand: results.leftHandLandmarks || [],
+                    rightHand: results.rightHandLandmarks || []
                   };
                   processLandmarks(landmarks);
                 }
@@ -476,38 +483,43 @@ export const LessonVideo = () => {
       }
     } else {
       // Process holistic landmarks for dynamic model
-
       // Initialize arrays for each landmark type
       const poseLandmarks = [];
       const leftHandLandmarks = [];
       const rightHandLandmarks = [];
 
       // Extract pose landmarks (all 33 landmarks)
-      if (landmarks.pose) {
+      if (landmarks.pose && landmarks.pose.length > 0) {
         landmarks.pose.forEach(landmark => {
-          poseLandmarks.push([
-            landmark.x,  // Already normalized by MediaPipe (0-1)
-            landmark.y,  // Already normalized by MediaPipe (0-1)
-            landmark.visibility || 0
-          ]);
+          if (landmark && typeof landmark.x === 'number' && typeof landmark.y === 'number') {
+            poseLandmarks.push([
+              landmark.x,  // Already normalized by MediaPipe (0-1)
+              landmark.y,  // Already normalized by MediaPipe (0-1)
+              landmark.visibility || 0
+            ]);
+          }
         });
       }
 
       // Extract hand landmarks (only x,y coordinates)
-      if (landmarks.leftHand) {
+      if (landmarks.leftHand && landmarks.leftHand.length > 0) {
         landmarks.leftHand.forEach(landmark => {
-          leftHandLandmarks.push([
-            landmark.x,  // Already normalized by MediaPipe (0-1)
-            landmark.y   // Already normalized by MediaPipe (0-1)
-          ]);
+          if (landmark && typeof landmark.x === 'number' && typeof landmark.y === 'number') {
+            leftHandLandmarks.push([
+              landmark.x,  // Already normalized by MediaPipe (0-1)
+              landmark.y   // Already normalized by MediaPipe (0-1)
+            ]);
+          }
         });
       }
-      if (landmarks.rightHand) {
+      if (landmarks.rightHand && landmarks.rightHand.length > 0) {
         landmarks.rightHand.forEach(landmark => {
-          rightHandLandmarks.push([
-            landmark.x,  // Already normalized by MediaPipe (0-1)
-            landmark.y   // Already normalized by MediaPipe (0-1)
-          ]);
+          if (landmark && typeof landmark.x === 'number' && typeof landmark.y === 'number') {
+            rightHandLandmarks.push([
+              landmark.x,  // Already normalized by MediaPipe (0-1)
+              landmark.y   // Already normalized by MediaPipe (0-1)
+            ]);
+          }
         });
       }
 
@@ -527,12 +539,18 @@ export const LessonVideo = () => {
         poseLandmarks.push(...createZeroLandmarks(33, true));
       }
 
+      // Log the processed landmarks for debugging
+      console.log('Processed Landmarks:', {
+        pose: poseLandmarks.length,
+        leftHand: leftHandLandmarks.length,
+        rightHand: rightHandLandmarks.length
+      });
 
       // For dynamic model, just flatten the raw landmarks
       const allLandmarks = [
-        ...poseLandmarks.map(l => [l.x, l.y, l.visibility]).flat(),
-        ...leftHandLandmarks.map(l => [l.x, l.y]).flat(),
-        ...rightHandLandmarks.map(l => [l.x, l.y]).flat()
+        ...poseLandmarks.flat(),
+        ...leftHandLandmarks.flat(),
+        ...rightHandLandmarks.flat()
       ];
 
       // Store landmarks if we have the correct number
