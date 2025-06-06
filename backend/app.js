@@ -33,19 +33,18 @@ app.use(
 // });
 
 app.use(cookieParser());
-app.use(express.json());
 app.use(logger);
 
-// Using body parser
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+// Increase the limit to something larger like 10MB (adjust as needed)
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 
 // Using morgan Request Logger
 app.use(morgan("dev"));
 
 // Using Resources Folder
 app.use(express.static("src"));
-app.use('/uploads', express.static('uploads'));
+app.use("/uploads", express.static("uploads"));
 
 // Using Routes
 const routes = require("./routes/routes");
