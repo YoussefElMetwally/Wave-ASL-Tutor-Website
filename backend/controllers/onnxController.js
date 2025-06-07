@@ -4,6 +4,11 @@ const path = require("path");
 
 let session; // Global inside this file
 
+// Constants for landmark processing
+const SEQUENCE_LENGTH = 30;
+const NUM_POSE_LANDMARKS = 33;
+const NUM_HAND_LANDMARKS = 21;
+
 exports.classify = async (req, res) => {
   try {
     const lessonID = req.body.lesson_id;
@@ -41,12 +46,25 @@ exports.classify = async (req, res) => {
         avgFrame.length,
       ]);
     } else if (fileName.startsWith("DYNAMIC")) {
-      const dynamicFrames = landmarks.slice(0, 30);
+      const isLeftHanded = req.body.isLeftHanded || false;
+      // Ensure we have exactly 30 frames
+      let processedFrames = landmarks;
+      if (processedFrames.length > SEQUENCE_LENGTH) {
+        processedFrames = processedFrames.slice(-SEQUENCE_LENGTH);
+      } else if (processedFrames.length < SEQUENCE_LENGTH) {
+        const padding = Array(SEQUENCE_LENGTH - processedFrames.length).fill(Array(183).fill(0));
+        processedFrames = [...padding, ...processedFrames];
+      }
 
-      // console.log(dynamicFrames.length);
-      // console.log(dynamicFrames[0].length);
+      // Validate the frames
+      validateLandmarks(processedFrames);
 
-      const normalizedFrames = normalizeSequenceWeb(dynamicFrames);
+      // Mirror the frames if needed
+      if (isLeftHanded) {
+        processedFrames = processedFrames.map(frame => mirrorLandmarks(frame));
+      }
+
+      const normalizedFrames = normalizeSequenceWeb(processedFrames);
 
       if (!Array.isArray(normalizedFrames[0])) {
         return res.status(400).json({
@@ -54,8 +72,8 @@ exports.classify = async (req, res) => {
         });
       }
 
-      const frames = normalizedFrames.length;
-      const features = normalizedFrames[0].length;
+      const numFrames = normalizedFrames.length;
+      const numFeatures = normalizedFrames[0].length;
 
       // Flatten 2D array landmarks into 1D Float32Array
       const flattenedLandmarks = Float32Array.from(normalizedFrames.flat());
@@ -63,8 +81,8 @@ exports.classify = async (req, res) => {
       // Create input tensor with shape [1, frames, features]
       input = new ort.Tensor("float32", flattenedLandmarks, [
         1,
-        frames,
-        features,
+        numFrames,
+        numFeatures,
       ]);
     } else {
       res.status(500).json({ message: "Model name error" });
@@ -98,7 +116,7 @@ exports.classify = async (req, res) => {
     });
   } catch (err) {
     console.error("Error during classification:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
 
@@ -215,4 +233,76 @@ function normalizeSequenceWeb(keypointsArray) {
   }
 
   return normalizedSequence;
+}
+
+// Add mirroring function
+function mirrorLandmarks(landmarks) {
+  const mirrored = [...landmarks];
+  
+  // Mirror x-coordinates (around the center 0.5)
+  // Pose landmarks (x, y, visibility)
+  for (let i = 0; i < NUM_POSE_LANDMARKS; i++) {
+    mirrored[i * 3] = 1.0 - mirrored[i * 3];
+  }
+  
+  // Hand landmarks (x, y)
+  const lhStartIdx = NUM_POSE_LANDMARKS * 3;
+  const rhStartIdx = lhStartIdx + NUM_HAND_LANDMARKS * 2;
+  
+  // Mirror x-coordinates for both hands
+  for (let i = 0; i < NUM_HAND_LANDMARKS; i++) {
+    mirrored[lhStartIdx + i * 2] = 1.0 - mirrored[lhStartIdx + i * 2];
+    mirrored[rhStartIdx + i * 2] = 1.0 - mirrored[rhStartIdx + i * 2];
+  }
+  
+  // Swap left and right hand data blocks
+  const lhData = mirrored.slice(lhStartIdx, rhStartIdx);
+  const rhData = mirrored.slice(rhStartIdx);
+  mirrored.splice(lhStartIdx, NUM_HAND_LANDMARKS * 2, ...rhData);
+  mirrored.splice(rhStartIdx, NUM_HAND_LANDMARKS * 2, ...lhData);
+  
+  // Swap paired pose landmarks
+  const posePairs = {
+    11: 12, 13: 14, 15: 16, 23: 24, 25: 26, 27: 28, 29: 30, 31: 32
+  };
+  
+  for (const [left, right] of Object.entries(posePairs)) {
+    const leftIdx = left * 3;
+    const rightIdx = right * 3;
+    [mirrored[leftIdx], mirrored[rightIdx]] = [mirrored[rightIdx], mirrored[leftIdx]];
+    [mirrored[leftIdx + 1], mirrored[rightIdx + 1]] = [mirrored[rightIdx + 1], mirrored[leftIdx + 1]];
+    [mirrored[leftIdx + 2], mirrored[rightIdx + 2]] = [mirrored[rightIdx + 2], mirrored[leftIdx + 2]];
+  }
+  
+  return mirrored;
+}
+
+// Add validation function
+function validateLandmarks(landmarks) {
+  if (!Array.isArray(landmarks)) {
+    throw new Error('Landmarks must be an array');
+  }
+  
+  if (landmarks.length !== SEQUENCE_LENGTH) {
+    throw new Error(`Expected ${SEQUENCE_LENGTH} frames, got ${landmarks.length}`);
+  }
+  
+  for (const frame of landmarks) {
+    if (!Array.isArray(frame)) {
+      throw new Error('Each frame must be an array');
+    }
+    
+    if (frame.length !== 183) {
+      throw new Error(`Expected 183 landmarks per frame, got ${frame.length}`);
+    }
+    
+    // Check for invalid values
+    for (const value of frame) {
+      if (typeof value !== 'number' || isNaN(value)) {
+        throw new Error('Invalid landmark value detected');
+      }
+    }
+  }
+  
+  return true;
 }

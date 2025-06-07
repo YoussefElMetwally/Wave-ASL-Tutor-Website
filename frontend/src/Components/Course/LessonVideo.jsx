@@ -504,84 +504,51 @@ export const LessonVideo = () => {
       }
     } else {
       // Process holistic landmarks for dynamic model
-      // Initialize arrays for each landmark type
       const poseLandmarks = [];
       const leftHandLandmarks = [];
       const rightHandLandmarks = [];
 
-      // Extract pose landmarks (all 33 landmarks)
+      // Extract pose landmarks
       if (landmarks.pose && landmarks.pose.length > 0) {
         landmarks.pose.forEach((landmark) => {
-          if (
-            landmark &&
-            typeof landmark.x === "number" &&
-            typeof landmark.y === "number"
-          ) {
+          if (landmark && typeof landmark.x === "number" && typeof landmark.y === "number") {
             poseLandmarks.push([
-              landmark.x, // Already normalized by MediaPipe (0-1)
-              landmark.y, // Already normalized by MediaPipe (0-1)
+              landmark.x,
+              landmark.y,
               landmark.visibility || 0,
             ]);
           }
         });
       }
 
-      // Extract hand landmarks (only x,y coordinates)
+      // Extract hand landmarks
       if (landmarks.leftHand && landmarks.leftHand.length > 0) {
         landmarks.leftHand.forEach((landmark) => {
-          if (
-            landmark &&
-            typeof landmark.x === "number" &&
-            typeof landmark.y === "number"
-          ) {
-            leftHandLandmarks.push([
-              landmark.x, // Already normalized by MediaPipe (0-1)
-              landmark.y, // Already normalized by MediaPipe (0-1)
-            ]);
+          if (landmark && typeof landmark.x === "number" && typeof landmark.y === "number") {
+            leftHandLandmarks.push([landmark.x, landmark.y]);
           }
         });
       }
       if (landmarks.rightHand && landmarks.rightHand.length > 0) {
         landmarks.rightHand.forEach((landmark) => {
-          if (
-            landmark &&
-            typeof landmark.x === "number" &&
-            typeof landmark.y === "number"
-          ) {
-            rightHandLandmarks.push([
-              landmark.x, // Already normalized by MediaPipe (0-1)
-              landmark.y, // Already normalized by MediaPipe (0-1)
-            ]);
+          if (landmark && typeof landmark.x === "number" && typeof landmark.y === "number") {
+            rightHandLandmarks.push([landmark.x, landmark.y]);
           }
         });
       }
 
-      // Create zero-filled arrays for missing landmarks
-      const createZeroLandmarks = (count, isPose = false) => {
-        return Array(count)
-          .fill()
-          .map(() => (isPose ? [0, 0, 0] : [0, 0]));
-      };
-
-      // Fill in missing landmarks with zeros
-      if (leftHandLandmarks.length === 0) {
-        leftHandLandmarks.push(...createZeroLandmarks(21));
+      // Fill missing landmarks with zeros
+      while (poseLandmarks.length < 33) {
+        poseLandmarks.push([0, 0, 0]);
       }
-      if (rightHandLandmarks.length === 0) {
-        rightHandLandmarks.push(...createZeroLandmarks(21));
+      while (leftHandLandmarks.length < 21) {
+        leftHandLandmarks.push([0, 0]);
       }
-      if (poseLandmarks.length === 0) {
-        poseLandmarks.push(...createZeroLandmarks(33, true));
+      while (rightHandLandmarks.length < 21) {
+        rightHandLandmarks.push([0, 0]);
       }
 
-      // Log the processed landmarks for debugging
-      console.log("Processed Landmarks:", {
-        pose: poseLandmarks.length,
-        leftHand: leftHandLandmarks.length,
-        rightHand: rightHandLandmarks.length,
-      });
-
-      // For dynamic model, just flatten the raw landmarks
+      // Combine all landmarks
       const allLandmarks = [
         ...poseLandmarks.flat(),
         ...leftHandLandmarks.flat(),
@@ -591,10 +558,6 @@ export const LessonVideo = () => {
       // Store landmarks if we have the correct number
       if (allLandmarks.length === 183) {
         landmarkFramesRef.current.push(allLandmarks);
-      } else {
-        console.warn(
-          `Invalid landmark count for dynamic model: ${allLandmarks.length}, expected 183. Pose: ${poseLandmarks.length}, Left Hand: ${leftHandLandmarks.length}, Right Hand: ${rightHandLandmarks.length}`
-        );
       }
     }
   };
@@ -739,10 +702,8 @@ export const LessonVideo = () => {
   };
 
   const stopRecording = async () => {
-    // Immediately update flags to prevent double requests
-    if (!isRecordingActive || isSubmitting) return; // Guard against duplicate calls
+    if (!isRecordingActive || isSubmitting) return;
 
-    // Clear any existing recording interval
     if (recordingIntervalRef.current) {
       clearInterval(recordingIntervalRef.current);
       recordingIntervalRef.current = null;
@@ -751,9 +712,7 @@ export const LessonVideo = () => {
     setRecording(false);
     isRecordingActive = false;
     setRecordingTime(3);
-    setIsSubmitting(true); // Set flag to indicate we're submitting
-
-    // Clear any existing feedback temporarily during submission
+    setIsSubmitting(true);
     setFeedbackStatus(null);
 
     // Filter frames based on model type
@@ -787,8 +746,6 @@ export const LessonVideo = () => {
     // Prepare landmark data for submission
     try {
       const token = localStorage.getItem("token");
-
-      // Send landmarks directly to the backend
       const response = await fetch("http://localhost:8000/api/classify", {
         method: "POST",
         headers: {
@@ -796,10 +753,11 @@ export const LessonVideo = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          landmarks: validFrames, // Only send the valid frames
+          landmarks: landmarkFramesRef.current,
           lesson_id: lessonId,
           sign: lesson.answers[currentVideoIndex],
-          model_type: modelType, // Add model type to the request
+          model_type: modelType,
+          isLeftHanded: false, // Add this as a state if you want to make it configurable
         }),
         credentials: "include",
       });
@@ -810,18 +768,10 @@ export const LessonVideo = () => {
       }
 
       const data = await response.json();
-
-      // Check if the sign is correct
-      const isCorrect =
-        data.predictedSign === lesson.answers[currentVideoIndex];
-
-      // Set the feedback status first before any other state updates
+      const isCorrect = data.predictedSign === lesson.answers[currentVideoIndex];
       setFeedbackStatus(isCorrect ? "correct" : "incorrect");
-
-      // Then update the sign correctness state
       setIsSignCorrect(isCorrect);
 
-      // Now add to saved recordings
       setSavedRecordings((prev) => [
         ...prev,
         {
@@ -829,41 +779,28 @@ export const LessonVideo = () => {
           timestamp: new Date().toISOString(),
           result: {
             predictedSign: data.predictedSign,
-            confidence: data.confidence / 100, // Convert percentage to decimal
+            confidence: data.confidence / 100,
             isCorrect: isCorrect,
           },
         },
       ]);
 
-      // Play sound effect based on result
       playSound(isCorrect);
 
       if (isCorrect) {
-        // Add the current sign to completed signs if not already there
         setCompletedSigns((prev) => {
           if (!prev.includes(currentVideoIndex)) {
             const newCompletedSigns = [...prev, currentVideoIndex];
-
-            // Check if all signs are completed after adding this one
-            if (
-              newCompletedSigns.length === lesson.videos.length &&
-              !lessonCompletedRef.current
-            ) {
-              // Mark the lesson as completed asynchronously
+            if (newCompletedSigns.length === lesson.videos.length && !lessonCompletedRef.current) {
               markLessonAsCompleted();
               lessonCompletedRef.current = true;
             }
-
             return newCompletedSigns;
           }
           return prev;
         });
 
         setTimeout(() => {
-          // Just show success but keep the user on the camera page
-          // No need to set isSignCorrect again as it's already set
-
-          // Show a notification that they've completed the sign successfully
           setShowPracticeSuccess(true);
           setTimeout(() => {
             setShowPracticeSuccess(false);
@@ -875,8 +812,8 @@ export const LessonVideo = () => {
       alert(err.message || "Failed to process landmarks. Please try again.");
       setFeedbackStatus(null);
     } finally {
-      setIsSubmitting(false); // Always reset the submitting flag
-      setHasAttempted(true); // Mark as attempted
+      setIsSubmitting(false);
+      setHasAttempted(true);
     }
   };
 
