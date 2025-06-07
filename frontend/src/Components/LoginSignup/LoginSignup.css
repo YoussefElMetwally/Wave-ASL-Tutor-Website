@@ -1,178 +1,235 @@
 /* Import modern fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-*{
+* {
     font-family: 'Poppins', sans-serif;
     box-sizing: border-box;
+    padding: 0;
 }
 
-.container{
+/* Split screen layout */
+.split-screen {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.left-panel {
+    flex: 0.7;
+    background: #e0f4ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+[data-theme="dark"] .left-panel{
+    background: linear-gradient(to right, #000000, #1a1a2e);
+}
+
+.left-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.1;
+    z-index: 1;
+}
+
+.brand-content {
+    position: relative;
+    z-index: 2;
+    color: rgb(0, 0, 0);
+    text-align: center;
+    max-width: 500px;
     display: flex;
     flex-direction: column;
-    margin: auto;
-    margin-top: 40px;
-    background: var(--container-bg);
-    padding: 30px 25px;
-    width: 380px;
-    border-radius: 24px;
-    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: 'Poppins', sans-serif;
+    margin-left: 100px;
 }
 
-.header{
+.brand-content .logo {
+    width: 250px;
+    height: auto;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    transition: transform 0.3s ease;
+    margin-bottom: -40px;
+}
+
+.brand-content .logo:hover {
+    transform: scale(1.01);
+}
+
+.brand-content h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.brand-content p {
+    font-size: 1.5rem;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.right-panel {
+    flex: 1.3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(to left, #48c2ff, #e0f4ff);
+}
+
+[data-theme="dark"] .right-panel {
+    background: linear-gradient(to left, #0066cc, #1a1a2e);
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 450px;
+    background: var(--container-bg);
+    padding: 2.5rem;
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    margin-right: -200px;
+}
+
+.header {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
     width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 2rem;
 }
 
-.text{
-    color: #00aaff;
-    font-size: 32px;
+.text {
+    color: var(--primary-color);
+    font-size: 2rem;
     font-weight: 600;
     letter-spacing: -0.5px;
 }
 
-.underline{
+.underline {
     width: 70px;
     height: 4px;
-    background: #00aaff;
+    background: var(--primary-color);
     border-radius: 2px;
 }
 
 .inputs {
-    margin-top: 20px;
+    margin-top: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 1.25rem;
 }
 
-.input{
+.input {
     display: flex;
     align-items: center;
-    margin: auto;
     width: 100%;
     height: 56px;
     background: var(--input-bg);
     border-radius: 12px;
     border: 2px solid transparent;
     position: relative;
+    transition: all 0.3s ease;
 }
 
 .input:focus-within {
     border-color: var(--primary-color);
-    box-shadow: 0 2px 4px rgba(0, 170, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 170, 255, 0.15);
 }
 
-.input img{
-    margin: 0px 20px;
+.input img {
+    margin: 0 1.25rem;
     width: 24px;
     height: 24px;
     filter: invert(45%);
 }
 
-.input input{
+.input input {
     height: 100%;
     width: 100%;
     background: transparent;
     border: none;
     outline: none;
     color: var(--text-color);
-    font-size: 16px;
-    padding-right: 45px;
+    font-size: 1rem;
+    padding-right: 3rem;
 }
 
 .input input::placeholder {
     color: var(--secondary-text);
 }
 
-/* Password toggle button styles */
 .password-toggle {
     position: absolute;
-    right: 10px;
+    right: 1rem;
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: 18px;
+    color: var(--secondary-text);
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    padding: 0.5rem;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    transition: background-color 0.2s ease, color 0.2s ease, transform 0.3s ease;
-    padding: 0;
-    color: var(--secondary-text);
-    opacity: 0.7;
-    overflow: hidden;
-}
-
-.password-toggle:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    opacity: 1;
-    color: var(--primary-color);
-    transform: scale(1.05);
-}
-
-.password-toggle:active {
-    transform: scale(0.95);
 }
 
 .password-toggle svg {
-    stroke: currentColor;
-    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55), 
-                opacity 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55), 
-                stroke 0.2s ease;
     position: absolute;
+    transition: all 0.3s ease;
 }
 
-/* Animation for eye icon (showing password) */
+/* Show password icon */
 .password-toggle svg:first-child {
-    transform: rotate(0deg) scale(1);
     opacity: 1;
+    transform: scale(1);
 }
 
-/* Animation for eye-off icon (hiding password) */
+/* Hide password icon */
 .password-toggle svg:last-child {
-    transform: rotate(-90deg) scale(0.5);
     opacity: 0;
+    transform: scale(0.5);
 }
 
-/* When password is visible, switch the animations */
-button.password-toggle[aria-label="Hide password"] svg:first-child {
-    transform: rotate(90deg) scale(0.5);
+/* When password is visible, switch the icons */
+.password-toggle[aria-label="Hide password"] svg:first-child {
     opacity: 0;
+    transform: scale(0.5);
 }
 
-button.password-toggle[aria-label="Hide password"] svg:last-child {
-    transform: rotate(0deg) scale(1);
+.password-toggle[aria-label="Hide password"] svg:last-child {
     opacity: 1;
+    transform: scale(1);
+}
+
+.password-toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
+    opacity: 1;
+    color: var(--primary-color);
 }
 
 [data-theme="dark"] .password-toggle:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
-.forgot-password{
-    text-align: center;
-    margin-top: 10px;
-    color: var(--secondary-text);
-    font-size: 15px;
-}
-
-.forgot-password span{
-    color: #00aaff;
-    cursor: pointer;
-    font-weight: 600;
-    text-decoration: underline;
-}
-
-.submit-container{
+.option-container {
     display: flex;
-    gap: 15px;
-    margin: 0px auto;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
 }
 
 .submit {
@@ -182,63 +239,65 @@ button.password-toggle[aria-label="Hide password"] svg:last-child {
     width: 150px;
     height: 50px;
     border-radius: 50px;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
-    letter-spacing: 0.5px;
-    background: var(--gradient-primary) !important;
-    color: #fff !important;
+    transition: all 0.3s ease;
+    background: var(--gradient-primary);
+    color: white;
     border: none;
     outline: none;
 }
 
 .submit:hover {
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 170, 255, 0.2);
 }
 
-.submit:focus {
-    outline: none;
-    box-shadow: none;
+.submit:active {
+    transform: translateY(0);
 }
 
-.gray{
-    background: var(--inactive-button-bg) !important;
-    color: var(--inactive-button-text) !important;
+.gray {
+    background: var(--inactive-button-bg);
+    color: var(--inactive-button-text);
 }
 
-.option-container{
+.submit-container {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin: 20px 0;
-    font-size: 15px;
+    margin-top: 1.5rem;
 }
 
-.option-container span {
-    color: #00aaff;
+.forgot-password {
+    text-align: center;
+    margin-top: 1rem;
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+}
+
+.forgot-password span {
+    color: var(--primary-color);
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-/* Add these new variables and styles */
+.forgot-password span:hover {
+    text-decoration: underline;
+}
+
+/* Theme variables */
 :root {
     --primary-color: #00aaff;
     --secondary-color: #0066cc;
     --accent-color: #ff6b6b;
     --text-color: #333;
-    --background-color: #e0f4ff;
-    --card-bg: #f8f9fa;
-    --progress-bg: #e9ecef;
+    --background-color: #f8f9fa;
+    --container-bg: #ffffff;
+    --input-bg: #f5f5f5;
+    --secondary-text: #666;
     --gradient-primary: linear-gradient(135deg, #00aaff, #0066cc);
-    --gradient-accent: linear-gradient(135deg, #ff6b6b, #ff4757);
-    --gradient-success: linear-gradient(135deg, #4CAF50, #45a049);
-    --gradient-warning: linear-gradient(135deg, #FFC107, #ffa000);
-    --gradient-danger: linear-gradient(135deg, #f44336, #d32f2f);
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --border-radius: 8px;
-    --button-bg: #00aaff;
-    --button-hover: #0088cc;
     --inactive-button-bg: #e0e0e0;
     --inactive-button-text: #666666;
 }
@@ -248,298 +307,164 @@ button.password-toggle[aria-label="Hide password"] svg:last-child {
     --container-bg: #1e1e1e;
     --text-color: #ffffff;
     --input-bg: #2d2d2d;
-    --border-color: #404040;
-    --secondary-text: #b0b0b0;
-    --button-bg: #2d2d2d;
-    --button-hover: #404040;
+    --secondary-text: #a0a0a0;
     --inactive-button-bg: #2d2d2d;
-    --inactive-button-text: #b0b0b0;
+    --inactive-button-text: #a0a0a0;
 }
 
-body {
-    background: var(--background-color);
-    transition: background 0.3s ease;
-}
-
-.container{
-    background: var(--container-bg);
-    color: var(--text-color);
-    transition: all 0.3s ease;
-}
-
-.input{
-    background: var(--input-bg);
-    border-color: var(--border-color);
-}
-
-.input input{
+[data-theme="dark"] .brand-content {
     color: var(--text-color);
 }
 
-.forgot-password{
+[data-theme="dark"] .brand-content p {
     color: var(--secondary-text);
 }
 
-/* Theme toggle is handled in other components */
-
-/* Popup Styles */
-.popup-overlay {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  background-color: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(3px);
-  animation: fadeIn 0.3s ease forwards;
-  margin: 0;
-  padding: 0;
+[data-theme="dark"] .input img {
+    filter: invert(70%);
 }
 
-body.popup-active {
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-  height: 100%;
+[data-theme="dark"] .message {
+    color: var(--text-color);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+[data-theme="dark"] .popup-content {
+    background: var(--container-bg);
+    color: var(--text-color);
 }
 
-.popup-content {
-  background-color: var(--container-bg);
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
-  width: 90%;
-  text-align: center;
-  transform: scale(0.8);
-  animation: scaleIn 0.3s ease forwards;
-  border-top: 5px solid #ff4444;
-  margin: 0 auto;
-  position: relative;
-}
-
-.popup-content.success {
-  border-top: 5px solid #4CAF50;
-}
-
-.popup-content.error {
-  border-top: 5px solid #ff4444;
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.popup-content h3 {
-  color: #ff4444;
-  margin-bottom: 15px;
-  font-size: 20px;
-  animation: slideDown 0.3s ease forwards;
-}
-
-.popup-content.success h3 {
-  color: #4CAF50;
-}
-
-.popup-content.error h3 {
-  color: #ff4444;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.popup-content p {
-  color: var(--text-color);
-  margin-bottom: 20px;
-  font-size: 16px;
-  animation: slideUp 0.3s ease forwards;
-  animation-delay: 0.1s;
-  opacity: 0;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.popup-content button {
-  background: var(--gradient-primary);
-  color: white;
-  border: none;
-  padding: 10px 25px;
-  border-radius: 25px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  animation: fadeIn 0.3s ease forwards;
-  animation-delay: 0.2s;
-  opacity: 0;
-}
-
-.popup-content button.success-btn {
-  background: var(--gradient-success);
-}
-
-.popup-content button.error-btn {
-  background: var(--gradient-danger);
-}
-
-.popup-content button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-.login-button,
-.signup-button {
-    width: 100%;
-    padding: 1rem;
+[data-theme="dark"] .popup-content button {
     background: var(--gradient-primary);
     color: white;
-    border: none;
-    border-radius: 25px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: var(--shadow);
 }
 
-.login-button:hover,
-.signup-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+[data-theme="dark"] .popup-content button:hover {
+    background: var(--gradient-primary);
+    opacity: 0.9;
 }
 
-/* Transition animations */
+/* Animations */
 .slide-in {
-  animation: slideIn 0.3s ease forwards;
+    animation: slideIn 0.3s ease forwards;
 }
 
 .slide-out {
-  animation: slideOut 0.3s ease forwards;
+    animation: slideOut 0.3s ease forwards;
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 @keyframes slideOut {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-50px);
-  }
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
 }
 
-/* Make sure the root HTML and body cover the full viewport */
-html, body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
+
+/* Keep existing popup styles */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
 }
 
-.message {
-  text-align: center;
-  margin: 15px 0;
-  color: var(--primary-color);
-  font-weight: 500;
+.popup-content {
+    background: var(--container-bg);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 90%;
+    animation: scaleIn 0.3s ease;
 }
 
-/* Loading Styles - Centralized for all components */
+.popup-content h3 {
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    animation: slideDown 0.3s ease;
+}
+
+.popup-content p {
+    color: var(--secondary-text);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    animation: slideUp 0.3s ease;
+}
+
+.popup-content button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.popup-content.success button {
+    background: var(--gradient-success);
+    color: white;
+}
+
+.popup-content.error button {
+    background: var(--gradient-danger);
+    color: white;
+}
+
+.popup-content button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading spinner */
 .loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
-  text-align: center;
-  background: var(--background-color);
-  overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--background-color);
 }
 
 .loading-spinner {
-  display: inline-block;
-  width: 80px;
-  height: 80px;
-  margin-bottom: 1.5rem;
-  position: relative;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  outline: none;
-}
-
-.loading-spinner:after {
-  content: " ";
-  display: block;
-  width: 64px;
-  height: 64px;
-  margin: 8px;
-  border-radius: 50%;
-  border: 6px solid var(--primary-color);
-  border-color: var(--primary-color) transparent var(--primary-color) transparent;
-  animation: loading-spinner 1.2s linear infinite;
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--input-bg);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: loading-spinner 1s linear infinite;
 }
 
 .loading-text {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: var(--text-color);
-  margin-top: 1rem;
+    margin-top: 1rem;
+    color: var(--text-color);
+    font-size: 1.1rem;
 }
 
 @keyframes loading-spinner {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

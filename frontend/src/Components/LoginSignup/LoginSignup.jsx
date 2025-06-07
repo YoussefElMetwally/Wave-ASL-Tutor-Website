@@ -5,6 +5,7 @@ import { useTheme } from './ThemeContext';
 import user_icon from '../Assets/user (1).png';
 import email_icon from '../Assets/email.png';
 import password_icon from '../Assets/locked-computer.png';
+import logo from '../Assets/imageedit_19_2995496302.png';
 
 const Popup = ({ message, onClose, type = "error" }) => {
   // Add popup-active class to body when component mounts
@@ -170,35 +171,45 @@ export const LoginSignup = () => {
             type={popupType || "error"} 
           />
         )}
-        <div className={`container ${isTransitioning ? 'slide-out' : 'slide-in'}`}>
-          <div className='header'>
-            <div className='text'>Reset Password</div>
-            <div className='underline'></div>
+        <div className="split-screen">
+          <div className="left-panel">
+            <div className="brand-content">
+              <img src={logo} alt="Wave ASL Tutor Logo" className="logo" />
+              <p>Master American Sign Language with interactive lessons</p>
+            </div>
           </div>
-          <form onSubmit={(e) => { e.preventDefault(); handleRequestReset(); }} className="inputs">
-            <div className="input">
-              <img src={email_icon} alt="" />
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
+          <div className="right-panel">
+            <div className={`auth-container ${isTransitioning ? 'slide-out' : 'slide-in'}`}>
+              <div className='header'>
+                <div className='text'>Reset Password</div>
+                <div className='underline'></div>
+              </div>
+              <form onSubmit={(e) => { e.preventDefault(); handleRequestReset(); }} className="inputs">
+                <div className="input">
+                  <img src={email_icon} alt="" />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                {message && <div className="message">{message}</div>}
+                <div className="submit-container">
+                  <button type="submit" className="submit">
+                    Reset Password
+                  </button>
+                </div>
+                <div className="forgot-password">
+                  <span onClick={handleBackToLogin}>
+                    Back to Login
+                  </span>
+                </div>
+              </form>
             </div>
-            {message && <div className="message">{message}</div>}
-            <div className="submit-container">
-              <button type="submit" className="submit" style={{width: 200}}>
-                Reset Password
-              </button>
-            </div>
-            <div className="forgot-password" style={{ textAlign: 'center', marginTop: '20px' }}>
-              <span onClick={handleBackToLogin} style={{ cursor: 'pointer' }}>
-                Back to Login
-              </span>
-            </div>
-          </form>
+          </div>
         </div>
       </>
     );
@@ -213,88 +224,105 @@ export const LoginSignup = () => {
           type={popupType || "error"} 
         />
       )}
-      <div className={`container ${isTransitioning ? 'slide-out' : 'slide-in'}`}>
-        <div className='header'>
-          <div className='text'>{action}</div>
-          <div className='underline'></div>
-        </div>
-        <div className="option-container">
-          <div className={action === "Login" ? "submit gray" : "submit"} 
-                onClick={() => setAction("Sign Up")}>
-            Sign Up
-          </div>
-          <div className={action === "Sign Up" ? "submit gray" : "submit"} 
-                onClick={() => setAction("Login")}>
-            Login
+      <div className="split-screen">
+        <div className="left-panel">
+          <div className="brand-content">
+            <img src={logo} alt="Wave ASL Tutor Logo" className="logo" />
+            <p>Master American Sign Language with interactive lessons</p>
           </div>
         </div>
-        
-        <form onSubmit={handleSubmit} className="inputs">
-          {action === "Login" ? null : (
-            <>
-              <div className="input">
-                <img src={user_icon} alt="" />
-                <input type="text" 
-                        name="firstName" 
-                        placeholder='First Name' 
-                        value={formData.firstName} 
-                        onChange={handleChange} />
-              </div>
-              <div className="input">
-                <img src={user_icon} alt="" />
-                <input type="text" 
-                        name="lastName" 
-                        placeholder='Last Name' 
-                        value={formData.lastName} 
-                        onChange={handleChange} />
-              </div>
-            </>
-          )}
-          <div className="input">
-            <img src={email_icon} alt="" />
-            <input type="email" 
-                    name="email" 
-                    placeholder='Email' 
-                    value={formData.email} 
-                    onChange={handleChange} />
-          </div>
-          <div className="input">
-            <img src={password_icon} alt="" />
-            <input 
-              type={showPassword ? "text" : "password"} 
-              name="password" 
-              placeholder='Password' 
-              value={formData.password} 
-              onChange={handleChange} 
-            />
-            <button 
-              type="button" 
-              className="password-toggle" 
-              onClick={togglePasswordVisibility}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
-            </button>
-          </div>
-          {action === "Login" && (
-            <div className="forgot-password">
-              Lost Password? <span onClick={handleResetClick}>Click Here!</span>
+        <div className="right-panel">
+          <div className={`auth-container ${isTransitioning ? 'slide-out' : 'slide-in'}`}>
+            <div className='header'>
+              <div className='text'>{action}</div>
+              <div className='underline'></div>
             </div>
-          )}
-          {message && <div className="message">{message}</div>}
-          <div className="submit-container">
-            <button type="submit" className="submit">
-              {action}
-            </button>
+            <div className="option-container">
+              <div 
+                className={action === "Login" ? "submit gray" : "submit"} 
+                onClick={() => setAction("Sign Up")}
+              >
+                Sign Up
+              </div>
+              <div 
+                className={action === "Sign Up" ? "submit gray" : "submit"} 
+                onClick={() => setAction("Login")}
+              >
+                Login
+              </div>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="inputs">
+              {action === "Login" ? null : (
+                <>
+                  <div className="input">
+                    <img src={user_icon} alt="" />
+                    <input 
+                      type="text" 
+                      name="firstName" 
+                      placeholder='First Name' 
+                      value={formData.firstName} 
+                      onChange={handleChange} 
+                    />
+                  </div>
+                  <div className="input">
+                    <img src={user_icon} alt="" />
+                    <input 
+                      type="text" 
+                      name="lastName" 
+                      placeholder='Last Name' 
+                      value={formData.lastName} 
+                      onChange={handleChange} 
+                    />
+                  </div>
+                </>
+              )}
+              <div className="input">
+                <img src={email_icon} alt="" />
+                <input 
+                  type="email" 
+                  name="email" 
+                  placeholder='Email' 
+                  value={formData.email} 
+                  onChange={handleChange} 
+                />
+              </div>
+              <div className="input">
+                <img src={password_icon} alt="" />
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="password" 
+                  placeholder='Password' 
+                  value={formData.password} 
+                  onChange={handleChange} 
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                  </svg>
+                  <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                  </svg>
+                </button>
+              </div>
+              {action === "Login" && (
+                <div className="forgot-password">
+                  <span onClick={handleResetClick}>Forgot Password?</span>
+                </div>
+              )}
+              <div className="submit-container">
+                <button type="submit" className="submit">
+                  {action === "Login" ? "Login" : "Sign Up"}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </>
   );
