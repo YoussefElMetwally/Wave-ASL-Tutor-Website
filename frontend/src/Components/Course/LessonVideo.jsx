@@ -5,6 +5,9 @@ import { useSound } from "../LoginSignup/SoundContext";
 import "./Course.css";
 import "../LoginSignup/LoginSignup.css"; // Import shared styles
 import closeIcon from "../Assets/close.png"; // Import the close icon
+import ASLBackgroundDecoration from "./ASLBackgroundDecoration"; // Import the background decoration component
+import ASLFunFacts from "./ASLFunFacts"; // Import the fun facts component
+import ASLTips from "./ASLTips"; // Import the tips component
 // Import MediaPipe libraries and utilities
 import { Hands } from "@mediapipe/hands";
 import { Holistic } from "@mediapipe/holistic";
@@ -933,6 +936,9 @@ export const LessonVideo = () => {
         isDarkMode ? "dark-mode" : "light-mode"
       }`}
     >
+      {/* ASL Background Decoration */}
+      <ASLBackgroundDecoration isDarkMode={isDarkMode} />
+      
       {/* Back button */}
       <div className="back-button" onClick={handleBackClick}>
         <img src={closeIcon} alt="Back to course" title="Back to course" />
@@ -1001,87 +1007,103 @@ export const LessonVideo = () => {
 
       <div className="content-container">
         {!isPracticeMode ? (
-          <div className="video-section full-width">
-            <div className="video-player">
-              {lesson.videos && lesson.videos.length > 0 ? (
-                <>
-                  <div className="video-container">
-                    <iframe
-                      key={currentVideoIndex}
-                      width="100%"
-                      height="500"
-                      src={`${lesson.videos[currentVideoIndex]}?autoplay=0&rel=0&enablejsapi=1`}
-                      title={`${lesson.title} - Video ${currentVideoIndex + 1}`}
-                      frameBorder="0"
-                      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="main-video"
-                      onEnded={handleVideoEnd}
-                    ></iframe>
-                    <div className="video-navigation">
-                      <button
-                        className="nav-button prev-button"
-                        onClick={goToPreviousVideo}
-                        disabled={currentVideoIndex === 0}
-                      >
-                        Previous
-                      </button>
-                      <span className="current-sign">
-                        {lesson.answers[currentVideoIndex]}
-                      </span>
-                      <button
-                        className="nav-button next-button"
-                        onClick={goToNextVideo}
-                        disabled={
-                          currentVideoIndex === lesson.videos.length - 1 ||
-                          !completedSigns.includes(currentVideoIndex)
-                        }
-                      >
-                        Next
-                      </button>
-                    </div>
-
-                    {showNextButton && (
-                      <div className="next-sign-overlay">
-                        <div className="next-sign-content">
-                          <p>Ready to move to the next sign?</p>
+          <>
+            <div className="lesson-layout-container">
+              {/* Left Box - Fun Facts */}
+              <div className="lesson-box lesson-box-left">
+                <ASLFunFacts lessonType={lesson.title.toLowerCase().includes('number') ? 'numbers' : 
+                                       lesson.title.toLowerCase().includes('alphabet') || 
+                                       lesson.title.toLowerCase().includes('letter') ? 'alphabet' : ''} />
+              </div>
+              
+              {/* Center Box - Video */}
+              <div className="lesson-box lesson-box-center">
+                <div className="video-player">
+                  {lesson.videos && lesson.videos.length > 0 ? (
+                    <>
+                      <div className="video-container">
+                        <iframe
+                          key={currentVideoIndex}
+                          width="100%"
+                          height="500"
+                          src={`${lesson.videos[currentVideoIndex]}?autoplay=0&rel=0&enablejsapi=1`}
+                          title={`${lesson.title} - Video ${currentVideoIndex + 1}`}
+                          frameBorder="0"
+                          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="main-video"
+                          onEnded={handleVideoEnd}
+                          style={{ display: 'block', aspectRatio: '16/9' }}
+                        ></iframe>
+                        <div className="video-navigation">
                           <button
-                            className="next-sign-button"
-                            onClick={() => {
-                              if (
-                                currentVideoIndex <
-                                lesson.videos.length - 1
-                              ) {
-                                goToNextVideo();
-                              } else {
-                                setIsVideoComplete(true);
-                              }
-                            }}
+                            className="nav-button prev-button"
+                            onClick={goToPreviousVideo}
+                            disabled={currentVideoIndex === 0}
                           >
-                            {currentVideoIndex < lesson.videos.length - 1
-                              ? "Next Sign"
-                              : "Complete Lesson"}
+                            Previous
+                          </button>
+                          <span className="current-sign">
+                            {lesson.answers[currentVideoIndex]}
+                          </span>
+                          <button
+                            className="nav-button next-button"
+                            onClick={goToNextVideo}
+                            disabled={
+                              currentVideoIndex === lesson.videos.length - 1 ||
+                              !completedSigns.includes(currentVideoIndex)
+                            }
+                          >
+                            Next
                           </button>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                  <button onClick={startPractice} className="practice-button">
-                    <span className="practice-icon">🎯</span>
-                    Practice Now
-                  </button>
-                </>
-              ) : (
-                <div className="no-video">
-                  No videos available for this lesson
-                </div>
-              )}
-            </div>
 
-            <div className="lesson-actions">
-              {/* Remove the practice button from here */}
+                        {showNextButton && (
+                          <div className="next-sign-overlay">
+                            <div className="next-sign-content">
+                              <p>Ready to move to the next sign?</p>
+                              <button
+                                className="next-sign-button"
+                                onClick={() => {
+                                  if (
+                                    currentVideoIndex <
+                                    lesson.videos.length - 1
+                                  ) {
+                                    goToNextVideo();
+                                  } else {
+                                    setIsVideoComplete(true);
+                                  }
+                                }}
+                              >
+                                {currentVideoIndex < lesson.videos.length - 1
+                                  ? "Next Sign"
+                                  : "Complete Lesson"}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <button onClick={startPractice} className="practice-button">
+                        <span className="practice-icon">🎯</span>
+                        Practice Now
+                      </button>
+                    </>
+                  ) : (
+                    <div className="no-video">
+                      No videos available for this lesson
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Right Box - Tips */}
+              <div className="lesson-box lesson-box-right">
+                <ASLTips lessonType={lesson.title.toLowerCase().includes('number') ? 'numbers' : 
+                                  lesson.title.toLowerCase().includes('alphabet') || 
+                                  lesson.title.toLowerCase().includes('letter') ? 'alphabet' : ''} />
+              </div>
             </div>
-          </div>
+          </>
         ) : (
           <div className="practice-container full-width">
             <div className="webcam-container">
