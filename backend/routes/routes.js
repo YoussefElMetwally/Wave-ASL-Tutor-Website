@@ -25,7 +25,7 @@ const {
   getCourseBySlug,
 } = require("../controllers/courseController");
 const {
-  getLessonQuestions,
+  // getLessonQuestions,
   getLessonById,
   getLessons,
   createLesson,
@@ -70,13 +70,13 @@ router.get("/api/courses/:id", checkLogin, getCourseById);
 // Lesson routes
 router.get("/api/lessons", checkLogin, getLessons);
 router.get("/api/lessons/:id", checkLogin, getLessonById);
-router.get("/api/lessons/:id/questions", checkLogin, getLessonQuestions);
 router.get(
   "/api/courses/:courseSlug/lessons/:id",
   checkLogin,
   checkLessonAccess,
   getLessonById
 );
+// router.get("/api/lessons/:id/questions", checkLogin, getLessonQuestions);
 
 // Test routes
 router.get("/api/tests", checkLogin, getTests);
