@@ -1,4 +1,5 @@
 const Test = require("../models/testModel");
+const TestScore = require("../models/testScoreModel");
 
 exports.getTests = async (req, res) => {
   try {
