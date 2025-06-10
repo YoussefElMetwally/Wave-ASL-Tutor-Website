@@ -36,6 +36,10 @@ const {
   createTestScore,
   getTestScores,
 } = require("../controllers/testController");
+const {
+  getCourseQuiz,
+  submitCourseQuiz,
+} = require("../controllers/quizController");
 const { classify } = require("../controllers/onnxController");
 const {
   incrementCompletedLessons,
@@ -83,6 +87,10 @@ router.get("/api/tests", checkLogin, getTests);
 router.get("/api/tests/:id", checkLogin, getTestById);
 router.post("/api/testScores/create", checkLogin, createTestScore);
 router.get("/api/testScores", checkLogin, getTestScores);
+
+// Course quiz routes
+router.get("/api/courses/:courseSlug/quiz", checkLogin, getCourseQuiz); // Temporarily removed checkEnrollment
+router.post("/api/courses/:courseSlug/quiz/submit", checkLogin, submitCourseQuiz); // Temporarily removed checkEnrollment
 
 // ONNX prediction route
 router.post("/api/classify", checkLogin, classify);

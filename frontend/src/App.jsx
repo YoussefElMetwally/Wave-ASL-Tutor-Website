@@ -6,6 +6,7 @@ import { ThemeProvider } from './Components/LoginSignup/ThemeContext';
 import { SoundProvider } from './Components/LoginSignup/SoundContext';
 import { CourseDetails } from './Components/Course/CourseDetails';
 import { LessonVideo } from './Components/Course/LessonVideo';
+import CourseQuiz from './Components/Course/CourseQuiz';
 import { ProfilePage } from './Components/LoginSignup/profile';
 import { ResetPassword } from './Components/LoginSignup/ResetPassword';
 import PageTransition from './Components/LoginSignup/PageTransition';
@@ -51,6 +52,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <LessonVideo />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/course/:courseSlug/quiz" 
+                element={
+                  <ProtectedRoute>
+                    <CourseQuiz />
                   </ProtectedRoute>
                 } 
               />

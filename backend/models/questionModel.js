@@ -4,9 +4,10 @@ const moment = require("moment");
 const questionSchema = new mongoose.Schema({
   question_id: { type: String, unique: true },
   question: { type: String, required: true },
+  image_url: { type: String }, // URL to the image of the ASL sign
   mcq: { type: [String], default: [] }, // Array of options for MCQ
   answer: { type: String, required: true },
-  type: { type: String, enum: ["MCQ", "Text"], required: true }, // Type of question
+  type: { type: String, enum: ["MCQ", "Text", "Image-MCQ"], required: true }, // Type of question
 });
 
 questionSchema.pre("save", async function (next) {

@@ -33,7 +33,7 @@ enrollmentSchema.pre("save", async function (next) {
     const completed =
       (this.completed_lessons || 0) + (this.completed_tests || 0);
     this.progress_percentage =
-      total_lessons > 0 ? (completed / total_lessons) * 100 : 0; // include tests in percentage calculations later
+      total > 0 ? (completed / total) * 100 : 0; // Now correctly includes tests in percentage calculation
   }
   next();
 });

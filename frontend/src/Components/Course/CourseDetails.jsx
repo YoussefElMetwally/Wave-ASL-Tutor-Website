@@ -176,6 +176,32 @@ export const CourseDetails = () => {
         <img src={closeIcon} alt="Back to home" title="Back to home" />
       </div>
       
+      {/* Quiz Button - only show if course is not completed */}
+      {enrollment && enrollment.status !== "Completed" && (
+        <div className="quiz-button-container">
+          <button 
+            className="take-quiz-button"
+            onClick={() => navigate(`/course/${courseSlug}/quiz`)}
+            title={
+              enrollment && course?.lessons?.length > 0 && 
+              enrollment.completed_lessons < course.lessons.length 
+                ? "Complete all lessons first to take the quiz" 
+                : "Take the final quiz to complete this course"
+            }
+            disabled={
+              enrollment && course?.lessons?.length > 0 && 
+              enrollment.completed_lessons < course.lessons.length
+            }
+          >
+            {enrollment && course?.lessons?.length > 0 && 
+             enrollment.completed_lessons < course.lessons.length
+              ? `Complete All Lessons First (${enrollment.completed_lessons}/${course.lessons.length})`
+              : "Take Final Quiz"
+            }
+          </button>
+        </div>
+      )}
+      
       <div className="course-header">
         <div className="course-title-section">
           <h1>{course.title}</h1>
@@ -233,6 +259,27 @@ export const CourseDetails = () => {
           <div className="completion-text">
             <h3>Course Completed!</h3>
             <p>Congratulations on completing this course.</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Show quiz button if all lessons are completed but the course is not marked as completed */}
+      {enrollment && 
+       course.lessons && 
+       course.lessons.length > 0 && 
+       enrollment.completed_lessons === course.lessons.length && 
+       enrollment.status !== "Completed" && (
+        <div className="course-quiz-prompt">
+          <div className="quiz-prompt-icon">📝</div>
+          <div className="quiz-prompt-text">
+            <h3>Ready for the Final Quiz?</h3>
+            <p>You've completed all lessons! Take the quiz to finish this course.</p>
+            <button 
+              className="start-quiz-button"
+              onClick={() => navigate(`/course/${courseSlug}/quiz`)}
+            >
+              Start Quiz
+            </button>
           </div>
         </div>
       )}
