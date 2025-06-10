@@ -6,7 +6,6 @@ const lessonSchema = new mongoose.Schema({
   title: { type: String, required: true },
   videos: [{ type: String }],
   answers: [{ type: String }],
-  questions: [{ type: mongoose.Schema.Types.String, ref: "question" }], // References Question IDs
   model_path: {
     type: String,
     required: true,

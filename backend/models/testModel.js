@@ -4,7 +4,6 @@ const moment = require("moment");
 const testSchema = new mongoose.Schema({
   test_ID: { type: String, unique: true },
   title: { type: String, required: true },
-  your_score: { type: Number, default: 0 },
   max_score: { type: Number, required: true },
   questions: [{ type: mongoose.Schema.Types.String, ref: "question" }], // References Question IDs
 });

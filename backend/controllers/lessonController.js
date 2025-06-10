@@ -4,7 +4,6 @@ const fs = require("fs");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 
-
 exports.getLessons = async (req, res) => {
   try {
     const lessons = await Lesson.find().sort({ lesson_id: 1 });
@@ -33,25 +32,25 @@ exports.getLessonById = async (req, res) => {
   }
 };
 
-exports.getLessonQuestions = async (req, res) => {
-  try {
-    const lessonID = req.body;
-    const lesson = await Lesson.findOne({ lesson_id: lessonID });
+// exports.getLessonQuestions = async (req, res) => {
+//   try {
+//     const lessonID = req.body;
+//     const lesson = await Lesson.findOne({ lesson_id: lessonID });
 
-    if (!lesson) {
-      return res.status(400).json({ message: "Lesson not found" });
-    }
+//     if (!lesson) {
+//       return res.status(400).json({ message: "Lesson not found" });
+//     }
 
-    // Fetch questions manually using question IDs
-    const questions = await Question.find({
-      question_id: { $in: lesson.questions },
-    });
+//     // Fetch questions manually using question IDs
+//     const questions = await Question.find({
+//       question_id: { $in: lesson.questions },
+//     });
 
-    res.status(200).json(questions);
-  } catch (error) {
-    res.status(500).json({ message: "Error retrieving lesson questions" });
-  }
-};
+//     res.status(200).json(questions);
+//   } catch (error) {
+//     res.status(500).json({ message: "Error retrieving lesson questions" });
+//   }
+// };
 
 // exports.saveRecording = async (req, res) => {
 //   try {
